@@ -8,9 +8,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Neven.Axpo.Infrastructure",
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{91A42F1B-09F1-460F-B614-CB3DCFEF36B5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Neven.Axpo.Application.UnitTests", "Neven.Axpo.Application.UnitTests\Neven.Axpo.Application.UnitTests.csproj", "{9BE2A137-F374-448E-A25E-D2CD18307AE8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Neven.Axpo.Application.UnitTests", "Tests\Neven.Axpo.Application.UnitTests\Neven.Axpo.Application.UnitTests.csproj", "{5EC221AB-4886-4138-969C-A86C307A7746}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Neven.Axpo.Infrastructure.UnitTests", "Neven.Axpo.Infrastructure.UnitTests\Neven.Axpo.Infrastructure.UnitTests.csproj", "{5D024225-244D-4F11-8157-97A010616A56}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Neven.Axpo.Infrastructure.UnitTests", "Tests\Neven.Axpo.Infrastructure.UnitTests\Neven.Axpo.Infrastructure.UnitTests.csproj", "{BB7EDA50-8467-4354-A8D3-9CB3BCE6EAAC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -30,17 +30,17 @@ Global
 		{DAF72A8B-3798-4288-B1AA-2295B709B1C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DAF72A8B-3798-4288-B1AA-2295B709B1C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DAF72A8B-3798-4288-B1AA-2295B709B1C1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9BE2A137-F374-448E-A25E-D2CD18307AE8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9BE2A137-F374-448E-A25E-D2CD18307AE8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9BE2A137-F374-448E-A25E-D2CD18307AE8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9BE2A137-F374-448E-A25E-D2CD18307AE8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5D024225-244D-4F11-8157-97A010616A56}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5D024225-244D-4F11-8157-97A010616A56}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5D024225-244D-4F11-8157-97A010616A56}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5D024225-244D-4F11-8157-97A010616A56}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5EC221AB-4886-4138-969C-A86C307A7746}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5EC221AB-4886-4138-969C-A86C307A7746}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5EC221AB-4886-4138-969C-A86C307A7746}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5EC221AB-4886-4138-969C-A86C307A7746}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB7EDA50-8467-4354-A8D3-9CB3BCE6EAAC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB7EDA50-8467-4354-A8D3-9CB3BCE6EAAC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB7EDA50-8467-4354-A8D3-9CB3BCE6EAAC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB7EDA50-8467-4354-A8D3-9CB3BCE6EAAC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{9BE2A137-F374-448E-A25E-D2CD18307AE8} = {91A42F1B-09F1-460F-B614-CB3DCFEF36B5}
-		{5D024225-244D-4F11-8157-97A010616A56} = {91A42F1B-09F1-460F-B614-CB3DCFEF36B5}
+		{5EC221AB-4886-4138-969C-A86C307A7746} = {91A42F1B-09F1-460F-B614-CB3DCFEF36B5}
+		{BB7EDA50-8467-4354-A8D3-9CB3BCE6EAAC} = {91A42F1B-09F1-460F-B614-CB3DCFEF36B5}
 	EndGlobalSection
 EndGlobal
