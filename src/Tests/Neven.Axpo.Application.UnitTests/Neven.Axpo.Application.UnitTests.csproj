@@ -19,12 +19,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Reference Include="PowerService">
-        <HintPath>..\External\netstandard2.0\PowerService.dll</HintPath>
-      </Reference>
-    </ItemGroup>
-
-    <ItemGroup>
       <ProjectReference Include="..\..\Neven.Axpo.Application\Neven.Axpo.Application.csproj" />
     </ItemGroup>
 
