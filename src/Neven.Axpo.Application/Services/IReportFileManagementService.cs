@@ -5,5 +5,5 @@ namespace Neven.Axpo.Application.Services;
 
 public interface IReportFileManagementService
 {
-    Task<Result> ExportToCsvFileAsync(ReportFile reportFile);
+    Task<Result> ExportToCsvFileAsync(ReportFile reportFile, bool includeHeaders = true);
 }
