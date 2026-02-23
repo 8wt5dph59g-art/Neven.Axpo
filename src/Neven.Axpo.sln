@@ -6,6 +6,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Neven.Axpo.Application", "N
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Neven.Axpo.Infrastructure", "Neven.Axpo.Infrastructure\Neven.Axpo.Infrastructure.csproj", "{DAF72A8B-3798-4288-B1AA-2295B709B1C1}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{91A42F1B-09F1-460F-B614-CB3DCFEF36B5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Neven.Axpo.Application.UnitTests", "Neven.Axpo.Application.UnitTests\Neven.Axpo.Application.UnitTests.csproj", "{9BE2A137-F374-448E-A25E-D2CD18307AE8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestProject1Neven.Axpo.Infrastructure.UnitTests", "TestProject1Neven.Axpo.Infrastructure.UnitTests\TestProject1Neven.Axpo.Infrastructure.UnitTests.csproj", "{C6CBF4AF-44D0-4332-A53D-3AD1F0235D70}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +30,17 @@ Global
 		{DAF72A8B-3798-4288-B1AA-2295B709B1C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DAF72A8B-3798-4288-B1AA-2295B709B1C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DAF72A8B-3798-4288-B1AA-2295B709B1C1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9BE2A137-F374-448E-A25E-D2CD18307AE8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9BE2A137-F374-448E-A25E-D2CD18307AE8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9BE2A137-F374-448E-A25E-D2CD18307AE8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9BE2A137-F374-448E-A25E-D2CD18307AE8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C6CBF4AF-44D0-4332-A53D-3AD1F0235D70}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C6CBF4AF-44D0-4332-A53D-3AD1F0235D70}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C6CBF4AF-44D0-4332-A53D-3AD1F0235D70}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C6CBF4AF-44D0-4332-A53D-3AD1F0235D70}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{9BE2A137-F374-448E-A25E-D2CD18307AE8} = {91A42F1B-09F1-460F-B614-CB3DCFEF36B5}
+		{C6CBF4AF-44D0-4332-A53D-3AD1F0235D70} = {91A42F1B-09F1-460F-B614-CB3DCFEF36B5}
 	EndGlobalSection
 EndGlobal
