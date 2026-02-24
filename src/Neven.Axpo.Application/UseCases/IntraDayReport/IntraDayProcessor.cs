@@ -10,7 +10,7 @@ public class IntraDayProcessor(IIntraDayReportService intraDayReportService, IRe
     private readonly IReportFileManagementService _reportFileManagementService = reportFileManagementService?? throw new ArgumentNullException(nameof(reportFileManagementService));
     private readonly ILogger _logger = logger?? throw new ArgumentNullException(nameof(logger));
 
-    public async Task<Result> GenerateReportAsync(DateTime date)
+    public async Task<Result> GenerateReportAsync(DateTime date, string exportPath)
     {
         _logger.Information("Received request to generate IntraDay report with date {date}", date);
         var reportData = await _intraDayReportService.GenerateDataAsync(date);
@@ -19,7 +19,7 @@ public class IntraDayProcessor(IIntraDayReportService intraDayReportService, IRe
             return Result.Fail(reportData.Errors);
         }
 
-        var dataForExport = await _intraDayReportService.PrepareDataForExportAsync(reportData.Value);
+        var dataForExport = await _intraDayReportService.PrepareDataForExportAsync(reportData.Value, exportPath);
         if (dataForExport.IsFailed)
         {
             return Result.Fail(dataForExport.Errors);

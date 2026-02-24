@@ -57,6 +57,7 @@ public class ReportFileManagementService(ILogger logger) : IReportFileManagement
             return Result.Fail(message);
         }
 
+        _logger.Information("Report file with name {FileName} successfully created in location {FilePath}.", reportFile.FileName, reportFile.FilePath);
         return Result.Ok();
     }
 
