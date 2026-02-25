@@ -1,36 +1,76 @@
 using FluentResults;
+using JetBrains.Annotations;
 using Neven.Axpo.Application.Services;
+using Neven.Axpo.Domain.Entities;
 using Serilog;
 
 namespace Neven.Axpo.Application.UseCases.IntraDayReport;
 
+/// <summary>
+/// Intra-Day report handler.
+/// </summary>
+/// <param name="intraDayReportService">Instance of Intra-Day Report service.</param>
+/// <param name="exportReportsService">Instance of Export Reports service.</param>
+/// <param name="logger">Logger</param>
+[UsedImplicitly]
 public class IntraDayReportHandler(IIntraDayReportService intraDayReportService, IExportReportsService exportReportsService, ILogger logger)
 {
     private readonly IIntraDayReportService _intraDayReportService = intraDayReportService?? throw new ArgumentNullException(nameof(intraDayReportService));
     private readonly IExportReportsService _exportReportsService = exportReportsService?? throw new ArgumentNullException(nameof(exportReportsService));
     private readonly ILogger _logger = logger?? throw new ArgumentNullException(nameof(logger));
 
-    public async Task<Result> GenerateReportAsync(DateTime date, string exportPath)
+    /// <summary>
+    /// This method will generate Intra-Day power trades report and export it to CSV file.
+    /// </summary>
+    /// <param name="date">Report day.</param>
+    /// <param name="exportPath">Export destination.</param>
+    /// <returns>Returns result that indicates was operation successful or not.</returns>
+    public async Task<Result> GenerateCsvReportAsync(DateTime date, string exportPath)
     {
         _logger.Information("Received request to generate IntraDay report with date {date}", date);
-        var reportData = await _intraDayReportService.GenerateDataAsync(date);
+        Result<AggregatedPowerTrade> reportData;
+        try
+        {
+            reportData = await _intraDayReportService.GenerateDataAsync(date);
+        }
+        catch (Exception e)
+        {
+            _logger.Error(e, "Unhandled exception occured while trying to generate report data.");
+            return Result.Fail("Failed to generate report data.");
+        }
+        
         if (reportData.IsFailed)
         {
             return Result.Fail(reportData.Errors);
         }
 
-        var dataForExport = await _intraDayReportService.PrepareDataForCsvExportAsync(reportData.Value);
+        Result<CsvReportData> dataForExport;
+        try
+        {
+            dataForExport = await _intraDayReportService.PrepareDataForCsvExportAsync(reportData.Value);
+        }
+        catch (Exception e)
+        {
+            _logger.Error(e, "Unhandled exception occured while trying to prepare report data for CSV export.");
+            return Result.Fail("Failed to prepare report data for CSV export.");
+        }
+        
         if (dataForExport.IsFailed)
         {
             return Result.Fail(dataForExport.Errors);
         }
 
-        var exportResult = await _exportReportsService.ExportToCsvFileAsync(dataForExport.Value, exportPath);
-        if (exportResult.IsFailed)
+        Result exportResult;
+        try
         {
-            return Result.Fail(exportResult.Errors);
+            exportResult = await _exportReportsService.ExportToCsvFileAsync(dataForExport.Value, exportPath);
         }
-
-        return Result.Ok();
+        catch (Exception e)
+        {
+            _logger.Error(e, "Unhandled exception occured while trying to save report to CSV file.");
+            return Result.Fail("Failed to save report to CSV file.");
+        }
+        
+        return exportResult.IsFailed ? Result.Fail(exportResult.Errors) : Result.Ok();
     }
 }

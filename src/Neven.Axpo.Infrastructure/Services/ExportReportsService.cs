@@ -12,7 +12,7 @@ public class ExportReportsService(ILogger logger) : IExportReportsService
     private readonly ILogger _logger = logger?? throw new ArgumentNullException(nameof(logger));
     
     /// <inheritdoc/>
-    public async Task<Result> ExportToCsvFileAsync(CsvReportData csvReportData, string exportFolder, bool includeHeaders = true)
+    public async Task<Result> ExportToCsvFileAsync(CsvReportData csvReportData, string exportPath, bool includeHeaders = true)
     {
         _logger.Information("Calling {Name}", nameof(ExportToCsvFileAsync));
         if (string.IsNullOrWhiteSpace(csvReportData.FileName))
@@ -20,7 +20,7 @@ public class ExportReportsService(ILogger logger) : IExportReportsService
             return Result.Fail("Report file name must be defined.");
         }
 
-        if (string.IsNullOrWhiteSpace(exportFolder))
+        if (string.IsNullOrWhiteSpace(exportPath))
         {
             return Result.Fail("Report file path must be defined.");
         }
@@ -51,7 +51,7 @@ public class ExportReportsService(ILogger logger) : IExportReportsService
 
         try
         {
-            var fullPath = Path.Combine(exportFolder, csvReportData.FileName);
+            var fullPath = Path.Combine(exportPath, csvReportData.FileName);
             await File.AppendAllLinesAsync(fullPath, lines);
         }
         catch (DirectoryNotFoundException e)
@@ -67,7 +67,7 @@ public class ExportReportsService(ILogger logger) : IExportReportsService
             return Result.Fail(message);
         }
 
-        _logger.Information("Report file with name {FileName} successfully created in location {FilePath}.", csvReportData.FileName, exportFolder);
+        _logger.Information("Report file with name {FileName} successfully created in location {FilePath}.", csvReportData.FileName, exportPath);
         return Result.Ok();
     }
 

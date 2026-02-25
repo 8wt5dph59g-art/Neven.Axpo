@@ -20,6 +20,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\Neven.Axpo.Application\Neven.Axpo.Application.csproj" />
+      <ProjectReference Include="..\Neven.Axpo.UnitTests.Infrastructure\Neven.Axpo.UnitTests.Infrastructure.csproj" />
     </ItemGroup>
 
 </Project>
