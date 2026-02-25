@@ -14,83 +14,129 @@ public class IntraDayReportService(IPowerService powerService, ILogger logger) :
     private readonly IPowerService _powerService = powerService?? throw new ArgumentNullException(nameof(powerService));
     private readonly ILogger _logger = logger?? throw new ArgumentNullException(nameof(logger));
 
+    /// <inheritdoc/>
     public async Task<Result<AggregatedPowerTrade>> GenerateDataAsync(DateTime date)
     {
+        _logger.Information("Calling {MethodName}", nameof(GenerateDataAsync));
         IEnumerable<PowerTrade> powerTrades;
-
         try
         {
+            _logger.Information("Calling {ServiceName} to get trades for date: {date}.", nameof(PowerService), date);
             powerTrades = await _powerService.GetTradesAsync(date);
         }
         catch (PowerServiceException e)
         {
             _logger.Error(e, "{ExceptionType} occured while trying to get trade data." , nameof(PowerServiceException));
-            return Result.Fail("Unable to get trade data");
+            return Result.Fail("Unable to get trade data.");
         }
         catch (Exception e)
         {
             _logger.Error(e, "An unexpected error occurred: {message}", e.Message);
-            return Result.Fail("Unable to get trade data");
+            return Result.Fail("Unable to get trade data.");
         }
 
-        var volumeByPeriod = powerTrades
-            .SelectMany(t => t.Periods)
-            .GroupBy(p => p.Period)
-            .ToDictionary(
-                g => g.Key,
-                g => g.Sum(p => p.Volume)
-            );
-
-        var reportStructure = GenerateReportStructure(date);
-        
-        
-        var result = new AggregatedPowerTrade
+        Dictionary<int, double> volumeByPeriod;
+        try
         {
-            TimeStamp = date,
-            Aggregations = reportStructure.Select(x => new AggregatedPowerPeriod
+            volumeByPeriod = powerTrades
+                .SelectMany(t => t.Periods)
+                .GroupBy(p => p.Period)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Sum(p => p.Volume)
+                );
+        }
+        catch (Exception e)
+        {
+            _logger.Error(e, "Exception occured while trying to group power trade volumes.");
+            return Result.Fail("Unable to group power trade volumes.");
+        }
+
+        Dictionary<int, Tuple<DateTime, double?>> reportStructure;
+        try
+        {
+            reportStructure = GenerateReportStructure(date);
+        }
+        catch (Exception e)
+        {
+            _logger.Error(e, "Exception occured while trying to generate initial report structure.");
+            return Result.Fail("Unable to generate initial report structure.");
+        }
+
+        AggregatedPowerTrade result;
+        try
+        {
+            result = new AggregatedPowerTrade
             {
-                AggregatedVolume = volumeByPeriod.TryGetValue(x.Key, out var value) ? value : null, 
-                Period = reportStructure[x.Key].Item1
-            }).ToArray()
-        };
+                TimeStamp = date,
+                Aggregations = reportStructure.Select(x => new AggregatedPowerPeriod
+                {
+                    AggregatedVolume = volumeByPeriod.TryGetValue(x.Key, out var value) ? value : null, 
+                    Period = reportStructure[x.Key].Item1
+                }).ToArray()
+            };
+        }
+        catch (Exception e)
+        {
+            _logger.Error(e, "Exception occured while trying to generate final report structure.");
+            return Result.Fail("Unable to generate final report structure.");
+        }
 
         return Result.Ok(result);
     }
 
+    /// <inheritdoc/>
     public Task<Result<CsvReportData>> PrepareDataForCsvExportAsync(AggregatedPowerTrade aggregatedPowerTrade)
     {
+        _logger.Information("Calling {MethodName}", nameof(PrepareDataForCsvExportAsync));
         var aggregations = aggregatedPowerTrade.Aggregations;
         var aggregationsLength = aggregations.Length;
-        
-        var result = new CsvReportData
+
+        if (aggregationsLength == 0)
         {
-            FileName = $"PowerPosition_{aggregatedPowerTrade.TimeStamp:YYYYMMDD}_{aggregatedPowerTrade.TimeStamp:HHMM}.csv",
-            Headers = [IntraDayReportHeaderData.LocalTime, IntraDayReportHeaderData.Volume],
-            TabularData = new string[aggregationsLength, 2]
-        };
-        
-        for (var i = 0; i < aggregationsLength; i++)
-        {
-            var aggregation = aggregations[i];
-            result.TabularData[i, 0] = aggregation.Period.ToString("HH:mm");
-            result.TabularData[i, 1] = aggregation.AggregatedVolume.HasValue 
-                ? aggregation.AggregatedVolume.Value.ToString(CultureInfo.InvariantCulture) 
-                : "Data Not Available";
+            return Task.FromResult<Result<CsvReportData>>(Result.Fail("Aggregation data is missing."));
         }
 
+        CsvReportData result;
+        try
+        {
+            result = new CsvReportData
+            {
+                FileName = $"PowerPosition_{aggregatedPowerTrade.TimeStamp:YYYYMMDD}_{aggregatedPowerTrade.TimeStamp:HHMM}.csv",
+                Headers = [IntraDayCsvReportConfiguration.HeaderLocalTime, IntraDayCsvReportConfiguration.HeaderVolume],
+                TabularData = new string[aggregationsLength, 2]
+            };
+        }
+        catch (Exception e)
+        {
+            _logger.Error(e, "Exception occured while trying to initiate instance of {Name}.", nameof(CsvReportData));
+            return Task.FromResult<Result<CsvReportData>>(Result.Fail($"Exception occured while trying to initiate instance of {nameof(CsvReportData)}."));
+        }
+
+        try
+        {
+            for (var i = 0; i < aggregationsLength; i++)
+            {
+                var aggregation = aggregations[i];
+                result.TabularData[i, 0] = aggregation.Period.ToString("HH:mm");
+                result.TabularData[i, 1] = aggregation.AggregatedVolume.HasValue 
+                    ? aggregation.AggregatedVolume.Value.ToString(CultureInfo.InvariantCulture) 
+                    : "Data Not Available";
+            }
+        }
+        catch (Exception e)
+        {
+            _logger.Error(e, "Exception occured while trying to prepare data for {Name}.", nameof(CsvReportData));
+            return Task.FromResult<Result<CsvReportData>>(Result.Fail($"Exception occured while trying to prepare data for {nameof(CsvReportData)}."));
+        }
+        
         return Task.FromResult(Result.Ok(result));
     }
 
     private static Dictionary<int, Tuple<DateTime,double?>> GenerateReportStructure(DateTime reportDateTime)
     {
-        var gmtTimeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("GMT Standard Time");
         var result = new Dictionary<int, Tuple<DateTime,double?>>();
-        
-        var reportDateTimeLowerBound = new DateTime(reportDateTime.Year, reportDateTime.Month, 
-            reportDateTime.Day, 0, 0, 0, DateTimeKind.Unspecified).Date.AddHours(-1.0);
-        var reportDateTimeUpperBound = reportDateTimeLowerBound.AddDays(1.0);
-        var reportDateTimeLowerBoundUtc = TimeZoneInfo.ConvertTimeToUtc(reportDateTimeLowerBound, gmtTimeZoneInfo);
-        var reportDateTimeUpperBoundUtc = TimeZoneInfo.ConvertTimeToUtc(reportDateTimeUpperBound, gmtTimeZoneInfo);
+        var (reportDateTimeLowerBoundUtc, reportDateTimeUpperBoundUtc) = DetermineReportDateTimeBounds(reportDateTime);
         var numberOfPeriods = (int) reportDateTimeUpperBoundUtc.Subtract(reportDateTimeLowerBoundUtc).TotalHours;
         for (var i = 0; i < numberOfPeriods; i++)
         {
@@ -98,5 +144,17 @@ public class IntraDayReportService(IPowerService powerService, ILogger logger) :
         }
 
         return result;
+    }
+
+    private static Tuple<DateTime, DateTime> DetermineReportDateTimeBounds(DateTime reportDateTime)
+    {
+        var gmtTimeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("GMT Standard Time");
+        var reportDateTimeLowerBound = new DateTime(reportDateTime.Year, reportDateTime.Month, 
+            reportDateTime.Day, 0, 0, 0, DateTimeKind.Unspecified).Date.AddHours(-1.0);
+        var reportDateTimeUpperBound = reportDateTimeLowerBound.AddDays(1.0);
+        var reportDateTimeLowerBoundUtc = TimeZoneInfo.ConvertTimeToUtc(reportDateTimeLowerBound, gmtTimeZoneInfo);
+        var reportDateTimeUpperBoundUtc = TimeZoneInfo.ConvertTimeToUtc(reportDateTimeUpperBound, gmtTimeZoneInfo);
+
+        return new Tuple<DateTime, DateTime>(reportDateTimeLowerBoundUtc, reportDateTimeUpperBoundUtc);
     }
 }

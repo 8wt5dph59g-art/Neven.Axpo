@@ -4,7 +4,7 @@ using Serilog;
 
 namespace Neven.Axpo.Application.UseCases.IntraDayReport;
 
-public class IntraDayReportProcessor(IIntraDayReportService intraDayReportService, IExportReportsService exportReportsService, ILogger logger)
+public class IntraDayReportHandler(IIntraDayReportService intraDayReportService, IExportReportsService exportReportsService, ILogger logger)
 {
     private readonly IIntraDayReportService _intraDayReportService = intraDayReportService?? throw new ArgumentNullException(nameof(intraDayReportService));
     private readonly IExportReportsService _exportReportsService = exportReportsService?? throw new ArgumentNullException(nameof(exportReportsService));

@@ -25,7 +25,7 @@ public class IntraDayReportServiceTests
         
         // Assert
         Assert.True(result.IsFailed);
-        Assert.Equal("Unable to get trade data", result.Errors[0].Message);
+        Assert.Equal("Unable to get trade data.", result.Errors[0].Message);
         logger.Verify(x => x.Error(It.IsAny<PowerServiceException>(), 
             "{ExceptionType} occured while trying to get trade data." , nameof(PowerServiceException)), Times.Once());
     }
@@ -46,7 +46,7 @@ public class IntraDayReportServiceTests
         
         // Assert
         Assert.True(result.IsFailed);
-        Assert.Equal("Unable to get trade data", result.Errors[0].Message);
+        Assert.Equal("Unable to get trade data.", result.Errors[0].Message);
         logger.Verify(x => x.Error(It.IsAny<Exception>(), 
             "An unexpected error occurred: {message}", e.Message), Times.Once());
     }
@@ -134,8 +134,8 @@ public class IntraDayReportServiceTests
         // Assert
         Assert.True(result.IsSuccess);
         Assert.Equal($"PowerPosition_{aggregatedPowerTrade.TimeStamp:YYYYMMDD}_{aggregatedPowerTrade.TimeStamp:HHMM}.csv", result.Value.FileName);
-        Assert.Contains(IntraDayReportHeaderData.LocalTime, result.Value.Headers);
-        Assert.Contains(IntraDayReportHeaderData.Volume, result.Value.Headers);
+        Assert.Contains(IntraDayCsvReportConfiguration.HeaderLocalTime, result.Value.Headers);
+        Assert.Contains(IntraDayCsvReportConfiguration.HeaderVolume, result.Value.Headers);
         Assert.Equal("23:00", result.Value.TabularData[0,0]);
         Assert.Equal("100", result.Value.TabularData[0,1]);
         Assert.Equal("00:00", result.Value.TabularData[1,0]);
@@ -152,7 +152,7 @@ public class IntraDayReportServiceTests
     }
     
     [Theory, AutoMoqData]
-    public async Task PrepareDataForCsvExportAsync_AggregatePowerTrade_No_Periods(
+    public async Task PrepareDataForCsvExportAsync_AggregatePowerTrade_No_Periods_Returs_Error(
         [UseCustomization(typeof(AggregatedPowerTradeCustomization))] AggregatedPowerTrade aggregatedPowerTrade,
         IntraDayReportService sut)
     {
@@ -163,10 +163,7 @@ public class IntraDayReportServiceTests
         var result = await sut.PrepareDataForCsvExportAsync(aggregatedPowerTrade);
         
         // Assert
-        Assert.True(result.IsSuccess);
-        Assert.Equal($"PowerPosition_{aggregatedPowerTrade.TimeStamp:YYYYMMDD}_{aggregatedPowerTrade.TimeStamp:HHMM}.csv", result.Value.FileName);
-        Assert.Contains(IntraDayReportHeaderData.LocalTime, result.Value.Headers);
-        Assert.Contains(IntraDayReportHeaderData.Volume, result.Value.Headers);
-        Assert.Empty(result.Value.TabularData);
+        Assert.True(result.IsFailed);
+        Assert.Equal("Aggregation data is missing.", result.Errors[0].Message);
     }
 }

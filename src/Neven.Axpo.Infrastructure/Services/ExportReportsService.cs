@@ -11,8 +11,10 @@ public class ExportReportsService(ILogger logger) : IExportReportsService
 {
     private readonly ILogger _logger = logger?? throw new ArgumentNullException(nameof(logger));
     
+    /// <inheritdoc/>
     public async Task<Result> ExportToCsvFileAsync(CsvReportData csvReportData, string exportFolder, bool includeHeaders = true)
     {
+        _logger.Information("Calling {Name}", nameof(ExportToCsvFileAsync));
         if (string.IsNullOrWhiteSpace(csvReportData.FileName))
         {
             return Result.Fail("Report file name must be defined.");
@@ -71,7 +73,7 @@ public class ExportReportsService(ILogger logger) : IExportReportsService
 
     private static string CreateFileLine(string[] lineItems)
     {
-        return string.Join(";", lineItems);
+        return string.Join(IntraDayCsvReportConfiguration.CsvDelimiter, lineItems);
     }
     
     private static string[] GetRow(string[,] rows, int rowNumber)
