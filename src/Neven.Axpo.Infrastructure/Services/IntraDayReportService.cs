@@ -1,41 +1,76 @@
 using Axpo;
 using FluentResults;
+using JetBrains.Annotations;
 using Neven.Axpo.Application.Services;
 using Neven.Axpo.Domain.Entities;
 using Serilog;
 
 namespace Neven.Axpo.Infrastructure.Services;
 
+[UsedImplicitly]
 public class IntraDayReportService(IPowerService powerService, ILogger logger) : IIntraDayReportService
 {
     private readonly IPowerService _powerService = powerService?? throw new ArgumentNullException(nameof(powerService));
     private readonly ILogger _logger = logger?? throw new ArgumentNullException(nameof(logger));
 
-    public Task<Result<AggregatedPowerTrade>> GenerateDataAsync(DateTime date)
+    public async Task<Result<AggregatedPowerTrade>> GenerateDataAsync(DateTime date)
     {
-        throw new NotImplementedException();
+        IEnumerable<PowerTrade> powerTrades;
+
+        try
+        {
+            powerTrades = await _powerService.GetTradesAsync(date);
+        }
+        catch (PowerServiceException e)
+        {
+            _logger.Error(e, "{ExceptionType} occured while trying to get trade data." , nameof(PowerServiceException));
+            return Result.Fail("Unable to get trade data");
+        }
+        catch (Exception e)
+        {
+            _logger.Error(e, "An unexpected error occurred: {message}", e.Message);
+            return Result.Fail("Unable to get trade data");
+        }
+
+        var volumeByPeriod = powerTrades
+            .SelectMany(t => t.Periods)
+            .GroupBy(p => p.Period)
+            .ToDictionary(
+                g => g.Key,
+                g => g.Sum(p => p.Volume)
+            );
+
+        var result = new AggregatedPowerTrade
+        {
+            TimeStamp = date,
+            Aggregations = volumeByPeriod.Select(x => new AggregatedPowerPeriod
+            {
+                AggregatedVolume = x.Value, 
+                Period = x.Key
+            }).ToArray()
+        };
+
+        return Result.Ok(result);
     }
 
-    public Task<Result<ReportFile>> PrepareDataForExportAsync(AggregatedPowerTrade aggregatedPowerTrade, string exportPath)
+    public Task<Result<ReportFile>> PrepareDataForCsvExportAsync(AggregatedPowerTrade aggregatedPowerTrade, string exportPath)
     {
-        if (aggregatedPowerTrade.Aggregations.Length == 0)
-        {
-            return Task.FromResult<Result<ReportFile>>(Result.Fail("There is no Data"));
-        }
+        var aggregations = aggregatedPowerTrade.Aggregations;
+        var aggregationsLength = aggregations.Length;
         
         var result = new ReportFile
         {
             FilePath = exportPath,
             FileName = $"PowerPosition_{aggregatedPowerTrade.TimeStamp:YYYYMMDD}_{aggregatedPowerTrade.TimeStamp:HHMM}.csv",
-            Headers = ["Local Time", "Volume"],
-            TabularData = new string[aggregatedPowerTrade.Aggregations.Length, 2]
+            Headers = [IntraDayReportHeaderData.LocalTime, IntraDayReportHeaderData.Volume],
+            TabularData = new string[aggregationsLength, 2]
         };
         
-        for (var i = 0; i<= aggregatedPowerTrade.Aggregations.Length; i++)
+        for (var i = 0; i < aggregationsLength; i++)
         {
-            var aggregatedPowerPeriod = aggregatedPowerTrade.Aggregations[i];
-            result.TabularData[i, 0] = TransformAggregatedPowerPeriod(aggregatedPowerPeriod.Period);
-            result.TabularData[i, 1] = aggregatedPowerTrade.Aggregations[i].AggregatedVolume.ToString("N");
+            var aggregation = aggregations[i];
+            result.TabularData[i, 0] = TransformAggregatedPowerPeriod(aggregation.Period);
+            result.TabularData[i, 1] = aggregation.AggregatedVolume.ToString("N2");
         }
 
         return Task.FromResult(Result.Ok(result));

@@ -4,10 +4,10 @@ using Serilog;
 
 namespace Neven.Axpo.Application.UseCases.IntraDayReport;
 
-public class IntraDayProcessor(IIntraDayReportService intraDayReportService, IReportFileManagementService reportFileManagementService, ILogger logger)
+public class IntraDayReportProcessor(IIntraDayReportService intraDayReportService, IExportReportsService exportReportsService, ILogger logger)
 {
     private readonly IIntraDayReportService _intraDayReportService = intraDayReportService?? throw new ArgumentNullException(nameof(intraDayReportService));
-    private readonly IReportFileManagementService _reportFileManagementService = reportFileManagementService?? throw new ArgumentNullException(nameof(reportFileManagementService));
+    private readonly IExportReportsService _exportReportsService = exportReportsService?? throw new ArgumentNullException(nameof(exportReportsService));
     private readonly ILogger _logger = logger?? throw new ArgumentNullException(nameof(logger));
 
     public async Task<Result> GenerateReportAsync(DateTime date, string exportPath)
@@ -19,13 +19,13 @@ public class IntraDayProcessor(IIntraDayReportService intraDayReportService, IRe
             return Result.Fail(reportData.Errors);
         }
 
-        var dataForExport = await _intraDayReportService.PrepareDataForExportAsync(reportData.Value, exportPath);
+        var dataForExport = await _intraDayReportService.PrepareDataForCsvExportAsync(reportData.Value, exportPath);
         if (dataForExport.IsFailed)
         {
             return Result.Fail(dataForExport.Errors);
         }
 
-        var exportResult = await _reportFileManagementService.ExportToCsvFileAsync(dataForExport.Value);
+        var exportResult = await _exportReportsService.ExportToCsvFileAsync(dataForExport.Value);
         if (exportResult.IsFailed)
         {
             return Result.Fail(exportResult.Errors);

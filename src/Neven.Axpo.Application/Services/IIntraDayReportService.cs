@@ -6,5 +6,6 @@ namespace Neven.Axpo.Application.Services;
 public interface IIntraDayReportService
 {
     Task<Result<AggregatedPowerTrade>> GenerateDataAsync(DateTime date);
-    Task<Result<ReportFile>> PrepareDataForExportAsync(AggregatedPowerTrade aggregatedPowerTrades, string exportPath);
+    
+    Task<Result<ReportFile>> PrepareDataForCsvExportAsync(AggregatedPowerTrade aggregatedPowerTrades, string exportPath);
 }

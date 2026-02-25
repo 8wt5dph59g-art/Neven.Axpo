@@ -1,22 +1,21 @@
-using System.Reflection;
+using AutoFixture.Xunit2;
 using Moq;
 using Neven.Axpo.Domain.Entities;
 using Neven.Axpo.Infrastructure.Services;
+using Neven.Axpo.UnitTests.Infrastructure;
 using Serilog;
 
 namespace Neven.Axpo.Infrastructure.UnitTests;
 
-public class ReportFileManagementServiceTests
+public class ExportReportsServiceTests
 {
-    [Fact]
-    public async Task ExportToCsvFileAsync_ReportFileName_Invalid()
+    [Theory, AutoMoqData]
+    public async Task ExportToCsvFileAsync_ReportFileName_Invalid(
+        [UseCustomization(typeof(ReportFileCustomization))] ReportFile reportFile,
+        ExportReportsService sut)
     {
         // Arrange
-        var reportFile = GenerateReportFileData();
         reportFile.FileName = string.Empty;
-
-        var logger = new Mock<ILogger>();
-        var sut = new ReportFileManagementService(logger.Object);
         
         // Act
         var result = await sut.ExportToCsvFileAsync(reportFile);
@@ -26,15 +25,13 @@ public class ReportFileManagementServiceTests
         Assert.Equal("Report file name must be defined.", result.Errors[0].Message);
     }
     
-    [Fact]
-    public async Task ExportToCsvFileAsync_ReportFilePath_Invalid()
+    [Theory, AutoMoqData]
+    public async Task ExportToCsvFileAsync_ReportFilePath_Invalid(
+        [UseCustomization(typeof(ReportFileCustomization))] ReportFile reportFile,
+        ExportReportsService sut)
     {
         // Arrange
-        var reportFile = GenerateReportFileData();
         reportFile.FilePath = string.Empty;
-
-        var logger = new Mock<ILogger>();
-        var sut = new ReportFileManagementService(logger.Object);
         
         // Act
         var result = await sut.ExportToCsvFileAsync(reportFile);
@@ -44,15 +41,12 @@ public class ReportFileManagementServiceTests
         Assert.Equal("Report file path must be defined.", result.Errors[0].Message);
     }
     
-    [Fact]
-    public async Task ExportToCsvFileAsync_ReportFileHeaders_Missing()
+    [Theory, AutoMoqData]
+    public async Task ExportToCsvFileAsync_ReportFileHeaders_Missing([UseCustomization(typeof(ReportFileCustomization))] ReportFile reportFile,
+        ExportReportsService sut)
     {
         // Arrange
-        var reportFile = GenerateReportFileData();
         reportFile.Headers = [];
-
-        var logger = new Mock<ILogger>();
-        var sut = new ReportFileManagementService(logger.Object);
         
         // Act
         var result = await sut.ExportToCsvFileAsync(reportFile);
@@ -62,15 +56,12 @@ public class ReportFileManagementServiceTests
         Assert.Equal("Data headers are missing.", result.Errors[0].Message);
     }
     
-    [Fact]
-    public async Task ExportToCsvFileAsync_ReportFileHeaders_LengthInvalid()
+    [Theory, AutoMoqData]
+    public async Task ExportToCsvFileAsync_ReportFileHeaders_LengthInvalid([UseCustomization(typeof(ReportFileCustomization))] ReportFile reportFile,
+        ExportReportsService sut)
     {
         // Arrange
-        var reportFile = GenerateReportFileData();
         reportFile.Headers = ["header1", "header2", "header3"];
-
-        var logger = new Mock<ILogger>();
-        var sut = new ReportFileManagementService(logger.Object);
         
         // Act
         var result = await sut.ExportToCsvFileAsync(reportFile);
@@ -80,38 +71,36 @@ public class ReportFileManagementServiceTests
         Assert.Equal("Number of header columns does not match number of columns in tabular data.", result.Errors[0].Message);
     }
     
-    [Fact]
-    public async Task ExportToCsvFileAsync_ReportFilePathError_ErrorWhileSaving()
+    [Theory, AutoMoqData]
+    public async Task ExportToCsvFileAsync_ReportFilePathError_ErrorWhileSaving([UseCustomization(typeof(ReportFileCustomization))] ReportFile reportFile,
+        [Frozen] Mock<ILogger> logger, ExportReportsService sut)
     {
         // Arrange
-        var reportFile = GenerateReportFileData();
         reportFile.FilePath = "aaaa";
-
-        var logger = new Mock<ILogger>();
-        var sut = new ReportFileManagementService(logger.Object);
         
         // Act
         var result = await sut.ExportToCsvFileAsync(reportFile);
         
         // Assert
         Assert.True(result.IsFailed);
-        Assert.Equal("Exception occured while saving report file.", result.Errors[0].Message);
+        Assert.Contains("Directory for export not found.", result.Errors[0].Message);
+        logger.Verify(x => x.Error(It.IsAny<Exception>(), 
+            "Directory for export not found."), Times.Once());
     }
     
-    [Fact]
-    public async Task ExportToCsvFileAsync_Ok()
+    [Theory, AutoMoqData]
+    public async Task ExportToCsvFileAsync_Ok([UseCustomization(typeof(ReportFileCustomization))] ReportFile reportFile,
+        [Frozen] Mock<ILogger> logger, ExportReportsService sut)
     {
         // Arrange
-        var reportFile = GenerateReportFileData();
-
-        var logger = new Mock<ILogger>();
-        var sut = new ReportFileManagementService(logger.Object);
         
         // Act
         var result = await sut.ExportToCsvFileAsync(reportFile);
         
         // Assert
         Assert.True(result.IsSuccess);
+        logger.Verify(x => x.Information("Report file with name {FileName} successfully created in location {FilePath}.", 
+            reportFile.FileName, reportFile.FilePath), Times.Once());
 
         var filePath = Path.Combine(reportFile.FilePath, reportFile.FileName);
         Assert.True(File.Exists(filePath));
@@ -121,19 +110,4 @@ public class ReportFileManagementServiceTests
         Assert.Equal("13:00,100.20", lines[1]);
         Assert.Equal("14:00,80.50", lines[2]);
     }
-
-    private static ReportFile GenerateReportFileData()
-    {
-        return new ReportFile
-        {
-            FileName = $"ReportFile_{DateTime.Now.Ticks}.csv" ,
-            FilePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
-            Headers = ["header1", "header2"],
-            TabularData = new[,]
-            {
-                { "13:00", "100.20" }, { "14:00", "80.50" }
-            }
-        };
-    }
-    
 }

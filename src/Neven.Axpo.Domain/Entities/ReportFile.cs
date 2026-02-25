@@ -8,5 +8,5 @@ public class ReportFile
     public string FilePath { get; set; }
     public string FileName { get; set; }
     public string[] Headers { get; set; } = [];
-    public string[,] TabularData { get; set; } = { };
+    public string[,] TabularData { get; init; } = { };
 }

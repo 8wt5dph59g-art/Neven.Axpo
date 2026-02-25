@@ -1,11 +1,13 @@
 using FluentResults;
+using JetBrains.Annotations;
 using Neven.Axpo.Application.Services;
 using Neven.Axpo.Domain.Entities;
 using Serilog;
 
 namespace Neven.Axpo.Infrastructure.Services;
 
-public class ReportFileManagementService(ILogger logger) : IReportFileManagementService
+[UsedImplicitly]
+public class ExportReportsService(ILogger logger) : IExportReportsService
 {
     private readonly ILogger _logger = logger?? throw new ArgumentNullException(nameof(logger));
     
@@ -50,10 +52,22 @@ public class ReportFileManagementService(ILogger logger) : IReportFileManagement
             var fullPath = Path.Combine(reportFile.FilePath, reportFile.FileName);
             await File.AppendAllLinesAsync(fullPath, lines);
         }
+        catch (FileNotFoundException e)
+        {
+            const string message = "File for export not found.";
+            _logger.Error(e, message);
+            return Result.Fail(message);
+        }
+        catch (DirectoryNotFoundException e)
+        {
+            const string message = "Directory for export not found.";
+            _logger.Error(e, message);
+            return Result.Fail(message);
+        }
         catch (Exception e)
         {
             const string message = "Exception occured while saving report file.";
-            _logger.Error(e, message);
+            _logger.Error(e, "An unexpected error occurred: {message}", e.Message);
             return Result.Fail(message);
         }
 
