@@ -1,4 +1,3 @@
-using System;
 using System.Reflection;
 using AutoFixture;
 using AutoFixture.Xunit2;

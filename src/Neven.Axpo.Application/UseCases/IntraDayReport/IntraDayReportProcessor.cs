@@ -19,13 +19,13 @@ public class IntraDayReportProcessor(IIntraDayReportService intraDayReportServic
             return Result.Fail(reportData.Errors);
         }
 
-        var dataForExport = await _intraDayReportService.PrepareDataForCsvExportAsync(reportData.Value, exportPath);
+        var dataForExport = await _intraDayReportService.PrepareDataForCsvExportAsync(reportData.Value);
         if (dataForExport.IsFailed)
         {
             return Result.Fail(dataForExport.Errors);
         }
 
-        var exportResult = await _exportReportsService.ExportToCsvFileAsync(dataForExport.Value);
+        var exportResult = await _exportReportsService.ExportToCsvFileAsync(dataForExport.Value, exportPath);
         if (exportResult.IsFailed)
         {
             return Result.Fail(exportResult.Errors);

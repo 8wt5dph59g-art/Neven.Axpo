@@ -11,25 +11,25 @@ public class ExportReportsService(ILogger logger) : IExportReportsService
 {
     private readonly ILogger _logger = logger?? throw new ArgumentNullException(nameof(logger));
     
-    public async Task<Result> ExportToCsvFileAsync(ReportFile reportFile, bool includeHeaders = true)
+    public async Task<Result> ExportToCsvFileAsync(CsvReportFileData csvReportFileData, string exportFolder, bool includeHeaders = true)
     {
-        if (string.IsNullOrWhiteSpace(reportFile.FileName))
+        if (string.IsNullOrWhiteSpace(csvReportFileData.FileName))
         {
             return Result.Fail("Report file name must be defined.");
         }
 
-        if (string.IsNullOrWhiteSpace(reportFile.FilePath))
+        if (string.IsNullOrWhiteSpace(exportFolder))
         {
             return Result.Fail("Report file path must be defined.");
         }
 
-        var numberOfHeaderColumns = reportFile.Headers.Length;
+        var numberOfHeaderColumns = csvReportFileData.Headers.Length;
         if (includeHeaders && numberOfHeaderColumns == 0)
         {
             return Result.Fail("Data headers are missing.");
         }
 
-        var columnsNumberInTabularData = reportFile.TabularData.GetLength(1);
+        var columnsNumberInTabularData = csvReportFileData.TabularData.GetLength(1);
         if (includeHeaders && numberOfHeaderColumns != columnsNumberInTabularData)
         {
             return Result.Fail("Number of header columns does not match number of columns in tabular data.");
@@ -38,18 +38,18 @@ public class ExportReportsService(ILogger logger) : IExportReportsService
         var lines = new List<string>();
         if (includeHeaders)
         {
-            lines.Add(CreateFileLine(reportFile.Headers));
+            lines.Add(CreateFileLine(csvReportFileData.Headers));
         }
 
-        var rowsNumberInTabularData = reportFile.TabularData.GetLength(0);
+        var rowsNumberInTabularData = csvReportFileData.TabularData.GetLength(0);
         for (var i = 0; i < rowsNumberInTabularData; i++)
         {
-            lines.Add(CreateFileLine(GetRow(reportFile.TabularData, i)));
+            lines.Add(CreateFileLine(GetRow(csvReportFileData.TabularData, i)));
         }
 
         try
         {
-            var fullPath = Path.Combine(reportFile.FilePath, reportFile.FileName);
+            var fullPath = Path.Combine(exportFolder, csvReportFileData.FileName);
             await File.AppendAllLinesAsync(fullPath, lines);
         }
         catch (DirectoryNotFoundException e)
@@ -65,7 +65,7 @@ public class ExportReportsService(ILogger logger) : IExportReportsService
             return Result.Fail(message);
         }
 
-        _logger.Information("Report file with name {FileName} successfully created in location {FilePath}.", reportFile.FileName, reportFile.FilePath);
+        _logger.Information("Report file with name {FileName} successfully created in location {FilePath}.", csvReportFileData.FileName, exportFolder);
         return Result.Ok();
     }
 

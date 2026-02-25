@@ -56,14 +56,13 @@ public class IntraDayReportService(IPowerService powerService, ILogger logger) :
         return Result.Ok(result);
     }
 
-    public Task<Result<ReportFile>> PrepareDataForCsvExportAsync(AggregatedPowerTrade aggregatedPowerTrade, string exportPath)
+    public Task<Result<CsvReportFileData>> PrepareDataForCsvExportAsync(AggregatedPowerTrade aggregatedPowerTrade)
     {
         var aggregations = aggregatedPowerTrade.Aggregations;
         var aggregationsLength = aggregations.Length;
         
-        var result = new ReportFile
+        var result = new CsvReportFileData
         {
-            FilePath = exportPath,
             FileName = $"PowerPosition_{aggregatedPowerTrade.TimeStamp:YYYYMMDD}_{aggregatedPowerTrade.TimeStamp:HHMM}.csv",
             Headers = [IntraDayReportHeaderData.LocalTime, IntraDayReportHeaderData.Volume],
             TabularData = new string[aggregationsLength, 2]

@@ -1,3 +1,4 @@
+using System.Reflection;
 using AutoFixture.Xunit2;
 using Moq;
 using Neven.Axpo.Domain.Entities;
@@ -11,14 +12,15 @@ public class ExportReportsServiceTests
 {
     [Theory, AutoMoqData]
     public async Task ExportToCsvFileAsync_ReportFileName_Invalid(
-        [UseCustomization(typeof(ReportFileCustomization))] ReportFile reportFile,
+        [UseCustomization(typeof(ReportFileCustomization))] CsvReportFileData csvReportFileData,
+        string exportFolder,
         ExportReportsService sut)
     {
         // Arrange
-        reportFile.FileName = string.Empty;
+        csvReportFileData.FileName = string.Empty;
         
         // Act
-        var result = await sut.ExportToCsvFileAsync(reportFile);
+        var result = await sut.ExportToCsvFileAsync(csvReportFileData, exportFolder);
         
         // Assert
         Assert.True(result.IsFailed);
@@ -27,14 +29,14 @@ public class ExportReportsServiceTests
     
     [Theory, AutoMoqData]
     public async Task ExportToCsvFileAsync_ReportFilePath_Invalid(
-        [UseCustomization(typeof(ReportFileCustomization))] ReportFile reportFile,
+        [UseCustomization(typeof(ReportFileCustomization))] CsvReportFileData csvReportFileData,
         ExportReportsService sut)
     {
         // Arrange
-        reportFile.FilePath = string.Empty;
+        var exportFolder = string.Empty;
         
         // Act
-        var result = await sut.ExportToCsvFileAsync(reportFile);
+        var result = await sut.ExportToCsvFileAsync(csvReportFileData, exportFolder);
         
         // Assert
         Assert.True(result.IsFailed);
@@ -43,14 +45,15 @@ public class ExportReportsServiceTests
     
     [Theory, AutoMoqData]
     public async Task ExportToCsvFileAsync_ReportFileHeaders_Missing(
-        [UseCustomization(typeof(ReportFileCustomization))] ReportFile reportFile,
+        [UseCustomization(typeof(ReportFileCustomization))] CsvReportFileData csvReportFileData,
+        string exportFolder,
         ExportReportsService sut)
     {
         // Arrange
-        reportFile.Headers = [];
+        csvReportFileData.Headers = [];
         
         // Act
-        var result = await sut.ExportToCsvFileAsync(reportFile);
+        var result = await sut.ExportToCsvFileAsync(csvReportFileData, exportFolder);
         
         // Assert
         Assert.True(result.IsFailed);
@@ -59,14 +62,15 @@ public class ExportReportsServiceTests
     
     [Theory, AutoMoqData]
     public async Task ExportToCsvFileAsync_ReportFileHeaders_LengthInvalid(
-        [UseCustomization(typeof(ReportFileCustomization))] ReportFile reportFile,
+        [UseCustomization(typeof(ReportFileCustomization))] CsvReportFileData csvReportFileData,
+        string exportFolder,
         ExportReportsService sut)
     {
         // Arrange
-        reportFile.Headers = ["header1", "header2", "header3"];
+        csvReportFileData.Headers = ["header1", "header2", "header3"];
         
         // Act
-        var result = await sut.ExportToCsvFileAsync(reportFile);
+        var result = await sut.ExportToCsvFileAsync(csvReportFileData, exportFolder);
         
         // Assert
         Assert.True(result.IsFailed);
@@ -76,14 +80,14 @@ public class ExportReportsServiceTests
     
     [Theory, AutoMoqData]
     public async Task ExportToCsvFileAsync_ReportFilePathError_DirectoryNotFoundException(
-        [UseCustomization(typeof(ReportFileCustomization))] ReportFile reportFile,
+        [UseCustomization(typeof(ReportFileCustomization))] CsvReportFileData csvReportFileData,
         [Frozen] Mock<ILogger> logger, ExportReportsService sut)
     {
         // Arrange
-        reportFile.FilePath = "aaaa";
+        var exportFolder = "aaaa";
         
         // Act
-        var result = await sut.ExportToCsvFileAsync(reportFile);
+        var result = await sut.ExportToCsvFileAsync(csvReportFileData, exportFolder);
         
         // Assert
         Assert.True(result.IsFailed);
@@ -94,14 +98,15 @@ public class ExportReportsServiceTests
     
     [Theory, AutoMoqData]
     public async Task ExportToCsvFileAsync_ReportFilePathError_Exception(
-        [UseCustomization(typeof(ReportFileCustomization))] ReportFile reportFile,
+        [UseCustomization(typeof(ReportFileCustomization))] CsvReportFileData csvReportFileData,
+        string exportFolder,
         ExportReportsService sut)
     {
         // Arrange
-        reportFile.FileName = "/////";
+        csvReportFileData.FileName = "/////";
         
         // Act
-        var result = await sut.ExportToCsvFileAsync(reportFile);
+        var result = await sut.ExportToCsvFileAsync(csvReportFileData, exportFolder);
         
         // Assert
         Assert.True(result.IsFailed);
@@ -110,21 +115,23 @@ public class ExportReportsServiceTests
     
     [Theory, AutoMoqData]
     public async Task ExportToCsvFileAsync_Ok(
-        [UseCustomization(typeof(ReportFileCustomization))] ReportFile reportFile,
+        [UseCustomization(typeof(ReportFileCustomization))] CsvReportFileData csvReportFileData,
         [Frozen] Mock<ILogger> logger, ExportReportsService sut)
     {
         // Arrange
+        var exportFolder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+        Assert.NotNull(exportFolder);
         
         // Act
-        var result = await sut.ExportToCsvFileAsync(reportFile);
+        var result = await sut.ExportToCsvFileAsync(csvReportFileData, exportFolder);
         
         // Assert
         Assert.True(result.IsSuccess);
         logger.Verify(x => x.Information(
             "Report file with name {FileName} successfully created in location {FilePath}.", 
-            reportFile.FileName, reportFile.FilePath), Times.Once());
+            csvReportFileData.FileName, exportFolder), Times.Once());
 
-        var filePath = Path.Combine(reportFile.FilePath, reportFile.FileName);
+        var filePath = Path.Combine(exportFolder, csvReportFileData.FileName);
         Assert.True(File.Exists(filePath));
         var lines = await File.ReadAllLinesAsync(filePath);
         Assert.Equal(3, lines.Length);

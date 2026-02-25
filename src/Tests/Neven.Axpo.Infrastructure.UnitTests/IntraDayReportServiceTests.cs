@@ -109,17 +109,15 @@ public class IntraDayReportServiceTests
     [Theory, AutoMoqData]
     public async Task PrepareDataForCsvExportAsync_Ok(
         [UseCustomization(typeof(AggregatedPowerTradeCustomization))] AggregatedPowerTrade aggregatedPowerTrade,
-        string exportPath,
         IntraDayReportService sut)
     {
         // Arrange
         
         // Act
-        var result = await sut.PrepareDataForCsvExportAsync(aggregatedPowerTrade, exportPath);
+        var result = await sut.PrepareDataForCsvExportAsync(aggregatedPowerTrade);
         
         // Assert
         Assert.True(result.IsSuccess);
-        Assert.Equal(exportPath, result.Value.FilePath);
         Assert.Equal($"PowerPosition_{aggregatedPowerTrade.TimeStamp:YYYYMMDD}_{aggregatedPowerTrade.TimeStamp:HHMM}.csv", result.Value.FileName);
         Assert.Contains(IntraDayReportHeaderData.LocalTime, result.Value.Headers);
         Assert.Contains(IntraDayReportHeaderData.Volume, result.Value.Headers);
@@ -136,18 +134,16 @@ public class IntraDayReportServiceTests
     [Theory, AutoMoqData]
     public async Task PrepareDataForCsvExportAsync_AggregatePowerTrade_No_Periods(
         [UseCustomization(typeof(AggregatedPowerTradeCustomization))] AggregatedPowerTrade aggregatedPowerTrade,
-        string exportPath,
         IntraDayReportService sut)
     {
         // Arrange
         aggregatedPowerTrade.Aggregations = [];
         
         // Act
-        var result = await sut.PrepareDataForCsvExportAsync(aggregatedPowerTrade, exportPath);
+        var result = await sut.PrepareDataForCsvExportAsync(aggregatedPowerTrade);
         
         // Assert
         Assert.True(result.IsSuccess);
-        Assert.Equal(exportPath, result.Value.FilePath);
         Assert.Equal($"PowerPosition_{aggregatedPowerTrade.TimeStamp:YYYYMMDD}_{aggregatedPowerTrade.TimeStamp:HHMM}.csv", result.Value.FileName);
         Assert.Contains(IntraDayReportHeaderData.LocalTime, result.Value.Headers);
         Assert.Contains(IntraDayReportHeaderData.Volume, result.Value.Headers);
