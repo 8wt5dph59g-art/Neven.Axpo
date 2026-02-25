@@ -52,12 +52,6 @@ public class ExportReportsService(ILogger logger) : IExportReportsService
             var fullPath = Path.Combine(reportFile.FilePath, reportFile.FileName);
             await File.AppendAllLinesAsync(fullPath, lines);
         }
-        catch (FileNotFoundException e)
-        {
-            const string message = "File for export not found.";
-            _logger.Error(e, message);
-            return Result.Fail(message);
-        }
         catch (DirectoryNotFoundException e)
         {
             const string message = "Directory for export not found.";

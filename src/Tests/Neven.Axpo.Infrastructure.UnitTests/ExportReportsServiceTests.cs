@@ -42,7 +42,8 @@ public class ExportReportsServiceTests
     }
     
     [Theory, AutoMoqData]
-    public async Task ExportToCsvFileAsync_ReportFileHeaders_Missing([UseCustomization(typeof(ReportFileCustomization))] ReportFile reportFile,
+    public async Task ExportToCsvFileAsync_ReportFileHeaders_Missing(
+        [UseCustomization(typeof(ReportFileCustomization))] ReportFile reportFile,
         ExportReportsService sut)
     {
         // Arrange
@@ -57,7 +58,8 @@ public class ExportReportsServiceTests
     }
     
     [Theory, AutoMoqData]
-    public async Task ExportToCsvFileAsync_ReportFileHeaders_LengthInvalid([UseCustomization(typeof(ReportFileCustomization))] ReportFile reportFile,
+    public async Task ExportToCsvFileAsync_ReportFileHeaders_LengthInvalid(
+        [UseCustomization(typeof(ReportFileCustomization))] ReportFile reportFile,
         ExportReportsService sut)
     {
         // Arrange
@@ -68,11 +70,13 @@ public class ExportReportsServiceTests
         
         // Assert
         Assert.True(result.IsFailed);
-        Assert.Equal("Number of header columns does not match number of columns in tabular data.", result.Errors[0].Message);
+        Assert.Equal("Number of header columns does not match number of columns in tabular data.", 
+            result.Errors[0].Message);
     }
     
     [Theory, AutoMoqData]
-    public async Task ExportToCsvFileAsync_ReportFilePathError_ErrorWhileSaving([UseCustomization(typeof(ReportFileCustomization))] ReportFile reportFile,
+    public async Task ExportToCsvFileAsync_ReportFilePathError_DirectoryNotFoundException(
+        [UseCustomization(typeof(ReportFileCustomization))] ReportFile reportFile,
         [Frozen] Mock<ILogger> logger, ExportReportsService sut)
     {
         // Arrange
@@ -84,12 +88,29 @@ public class ExportReportsServiceTests
         // Assert
         Assert.True(result.IsFailed);
         Assert.Contains("Directory for export not found.", result.Errors[0].Message);
-        logger.Verify(x => x.Error(It.IsAny<Exception>(), 
+        logger.Verify(x => x.Error(It.IsAny<DirectoryNotFoundException>(), 
             "Directory for export not found."), Times.Once());
     }
     
     [Theory, AutoMoqData]
-    public async Task ExportToCsvFileAsync_Ok([UseCustomization(typeof(ReportFileCustomization))] ReportFile reportFile,
+    public async Task ExportToCsvFileAsync_ReportFilePathError_Exception(
+        [UseCustomization(typeof(ReportFileCustomization))] ReportFile reportFile,
+        ExportReportsService sut)
+    {
+        // Arrange
+        reportFile.FileName = "/////";
+        
+        // Act
+        var result = await sut.ExportToCsvFileAsync(reportFile);
+        
+        // Assert
+        Assert.True(result.IsFailed);
+        Assert.Contains("Exception occured while saving report file.", result.Errors[0].Message);
+    }
+    
+    [Theory, AutoMoqData]
+    public async Task ExportToCsvFileAsync_Ok(
+        [UseCustomization(typeof(ReportFileCustomization))] ReportFile reportFile,
         [Frozen] Mock<ILogger> logger, ExportReportsService sut)
     {
         // Arrange
@@ -99,7 +120,8 @@ public class ExportReportsServiceTests
         
         // Assert
         Assert.True(result.IsSuccess);
-        logger.Verify(x => x.Information("Report file with name {FileName} successfully created in location {FilePath}.", 
+        logger.Verify(x => x.Information(
+            "Report file with name {FileName} successfully created in location {FilePath}.", 
             reportFile.FileName, reportFile.FilePath), Times.Once());
 
         var filePath = Path.Combine(reportFile.FilePath, reportFile.FileName);
