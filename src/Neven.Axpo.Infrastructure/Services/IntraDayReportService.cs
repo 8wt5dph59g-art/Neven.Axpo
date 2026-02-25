@@ -41,27 +41,28 @@ public class IntraDayReportService(IPowerService powerService, ILogger logger) :
                 g => g.Sum(p => p.Volume)
             );
 
-        var periodMatching = GeneratePeriodMatching(date);
+        var reportStructure = GenerateReportStructure(date);
+        
         
         var result = new AggregatedPowerTrade
         {
             TimeStamp = date,
-            Aggregations = volumeByPeriod.Select(x => new AggregatedPowerPeriod
+            Aggregations = reportStructure.Select(x => new AggregatedPowerPeriod
             {
-                AggregatedVolume = x.Value, 
-                Period = periodMatching[x.Key]
+                AggregatedVolume = volumeByPeriod.TryGetValue(x.Key, out var value) ? value : null, 
+                Period = reportStructure[x.Key].Item1
             }).ToArray()
         };
 
         return Result.Ok(result);
     }
 
-    public Task<Result<CsvReportFileData>> PrepareDataForCsvExportAsync(AggregatedPowerTrade aggregatedPowerTrade)
+    public Task<Result<CsvReportData>> PrepareDataForCsvExportAsync(AggregatedPowerTrade aggregatedPowerTrade)
     {
         var aggregations = aggregatedPowerTrade.Aggregations;
         var aggregationsLength = aggregations.Length;
         
-        var result = new CsvReportFileData
+        var result = new CsvReportData
         {
             FileName = $"PowerPosition_{aggregatedPowerTrade.TimeStamp:YYYYMMDD}_{aggregatedPowerTrade.TimeStamp:HHMM}.csv",
             Headers = [IntraDayReportHeaderData.LocalTime, IntraDayReportHeaderData.Volume],
@@ -72,25 +73,28 @@ public class IntraDayReportService(IPowerService powerService, ILogger logger) :
         {
             var aggregation = aggregations[i];
             result.TabularData[i, 0] = aggregation.Period.ToString("HH:mm");
-            result.TabularData[i, 1] = aggregation.AggregatedVolume.ToString(CultureInfo.InvariantCulture);
+            result.TabularData[i, 1] = aggregation.AggregatedVolume.HasValue 
+                ? aggregation.AggregatedVolume.Value.ToString(CultureInfo.InvariantCulture) 
+                : "Data Not Available";
         }
 
         return Task.FromResult(Result.Ok(result));
     }
 
-    private static Dictionary<int, DateTime> GeneratePeriodMatching(DateTime reportDateTime)
+    private static Dictionary<int, Tuple<DateTime,double?>> GenerateReportStructure(DateTime reportDateTime)
     {
         var gmtTimeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("GMT Standard Time");
-        var result = new Dictionary<int, DateTime>();
+        var result = new Dictionary<int, Tuple<DateTime,double?>>();
         
-        var reportDateTimeLowerBound = new DateTime(reportDateTime.Year, reportDateTime.Month, reportDateTime.Day, 0, 0, 0, DateTimeKind.Unspecified).Date.AddHours(-1.0);
+        var reportDateTimeLowerBound = new DateTime(reportDateTime.Year, reportDateTime.Month, 
+            reportDateTime.Day, 0, 0, 0, DateTimeKind.Unspecified).Date.AddHours(-1.0);
         var reportDateTimeUpperBound = reportDateTimeLowerBound.AddDays(1.0);
         var reportDateTimeLowerBoundUtc = TimeZoneInfo.ConvertTimeToUtc(reportDateTimeLowerBound, gmtTimeZoneInfo);
         var reportDateTimeUpperBoundUtc = TimeZoneInfo.ConvertTimeToUtc(reportDateTimeUpperBound, gmtTimeZoneInfo);
         var numberOfPeriods = (int) reportDateTimeUpperBoundUtc.Subtract(reportDateTimeLowerBoundUtc).TotalHours;
         for (var i = 0; i < numberOfPeriods; i++)
         {
-            result.Add(i+1, reportDateTimeLowerBoundUtc.AddHours(i));
+            result.Add(i+1, new Tuple<DateTime, double?>(reportDateTimeLowerBoundUtc.AddHours(i), null));
         }
 
         return result;

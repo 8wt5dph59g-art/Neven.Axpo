@@ -6,5 +6,5 @@ namespace Neven.Axpo.Domain.Entities;
 public class AggregatedPowerPeriod
 {
     public DateTime Period { get; init; }
-    public double AggregatedVolume { get; init; }
+    public double? AggregatedVolume { get; init; }
 }

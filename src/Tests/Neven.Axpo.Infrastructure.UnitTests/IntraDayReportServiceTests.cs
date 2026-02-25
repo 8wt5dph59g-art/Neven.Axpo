@@ -52,28 +52,37 @@ public class IntraDayReportServiceTests
     }
     
     [Theory, AutoMoqData]
-    public async Task GenerateDataAsync_PowerService_ReturnEmptyArray_Result_Empty(
+    public async Task GenerateDataAsync_PowerService_ReturnEmptyArray_Result_EmptyAggregationData(
         [Frozen] Mock<IPowerService> powerService,
         IntraDayReportService sut)
     {
         // Arrange
+        var periodStartDate = new DateTime(2026, 2, 1, 23, 0, 0);
+        var date =  new DateTime(2026, 2, 2, 15, 0, 0);
         powerService.Setup(x => x.GetTradesAsync(It.IsAny<DateTime>()))
             .ReturnsAsync([]);
         
         // Act
-        var result = await sut.GenerateDataAsync(DateTime.Now);
+        var result = await sut.GenerateDataAsync(date);
         
         // Assert
         Assert.True(result.IsSuccess);
-        Assert.Empty(result.Value.Aggregations);
+        Assert.NotEmpty(result.Value.Aggregations);
+        Assert.Equal(24, result.Value.Aggregations.Length);
+        for(var i = 0; i < 24; i++)
+        {
+            Assert.Equal( periodStartDate.AddHours(i), result.Value.Aggregations[i].Period);
+            Assert.Null(result.Value.Aggregations[i].AggregatedVolume);
+        }
     }
     
     [Theory, AutoMoqData]
-    public async Task GenerateDataAsync_PowerService_ReturnEmptyArray_Result_Correct(
+    public async Task GenerateDataAsync_PowerService_Result_Correct(
         [Frozen] Mock<IPowerService> powerService,
         IntraDayReportService sut)
     {
         // Arrange
+        var periodStartDate = new DateTime(2026, 2, 1, 23, 0, 0);
         var date = new DateTime(2026,2,2,15,15,15);
         var trades = new List<PowerTrade>
         {
@@ -96,14 +105,20 @@ public class IntraDayReportServiceTests
         // Assert
         Assert.True(result.IsSuccess);
         Assert.NotEmpty(result.Value.Aggregations);
-        Assert.Equal(new DateTime(2026, 2, 1, 23, 0, 0), result.Value.Aggregations[0].Period);
+        Assert.Equal(24, result.Value.Aggregations.Length);
+        Assert.Equal(periodStartDate, result.Value.Aggregations[0].Period);
         Assert.Equal(2d, result.Value.Aggregations[0].AggregatedVolume);
-        Assert.Equal(new DateTime(2026, 2, 2, 0, 0, 0), result.Value.Aggregations[1].Period);
+        Assert.Equal(periodStartDate.AddHours(1), result.Value.Aggregations[1].Period);
         Assert.Equal(4d, result.Value.Aggregations[1].AggregatedVolume);
-        Assert.Equal(new DateTime(2026, 2, 2, 1, 0, 0), result.Value.Aggregations[2].Period);
+        Assert.Equal(periodStartDate.AddHours(2), result.Value.Aggregations[2].Period);
         Assert.Equal(6d, result.Value.Aggregations[2].AggregatedVolume);
-        Assert.Equal(new DateTime(2026, 2, 2, 2, 0, 0), result.Value.Aggregations[3].Period);
+        Assert.Equal(periodStartDate.AddHours(3), result.Value.Aggregations[3].Period);
         Assert.Equal(8d, result.Value.Aggregations[3].AggregatedVolume);
+        for(var i = 4; i < 24; i++)
+        {
+            Assert.Equal(periodStartDate.AddHours(i), result.Value.Aggregations[i].Period);
+            Assert.Null(result.Value.Aggregations[i].AggregatedVolume);
+        }
     }
     
     [Theory, AutoMoqData]
@@ -125,10 +140,15 @@ public class IntraDayReportServiceTests
         Assert.Equal("100", result.Value.TabularData[0,1]);
         Assert.Equal("00:00", result.Value.TabularData[1,0]);
         Assert.Equal("200", result.Value.TabularData[1,1]);
-        Assert.Equal("03:00", result.Value.TabularData[2,0]);
+        Assert.Equal("01:00", result.Value.TabularData[2,0]);
         Assert.Equal("200.06622", result.Value.TabularData[2,1]);
-        Assert.Equal("18:00", result.Value.TabularData[3,0]);
+        Assert.Equal("02:00", result.Value.TabularData[3,0]);
         Assert.Equal("-75.06622", result.Value.TabularData[3,1]);
+        for (var i = 4; i < 16; i++)
+        {
+            Assert.Equal((i-1).ToString("00") + ":00", result.Value.TabularData[i,0]);
+            Assert.Equal("Data Not Available", result.Value.TabularData[i,1]);
+        }
     }
     
     [Theory, AutoMoqData]

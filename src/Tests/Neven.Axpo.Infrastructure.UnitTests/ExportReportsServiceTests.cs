@@ -12,15 +12,15 @@ public class ExportReportsServiceTests
 {
     [Theory, AutoMoqData]
     public async Task ExportToCsvFileAsync_ReportFileName_Invalid(
-        [UseCustomization(typeof(ReportFileCustomization))] CsvReportFileData csvReportFileData,
+        [UseCustomization(typeof(ReportFileCustomization))] CsvReportData csvReportData,
         string exportFolder,
         ExportReportsService sut)
     {
         // Arrange
-        csvReportFileData.FileName = string.Empty;
+        csvReportData.FileName = string.Empty;
         
         // Act
-        var result = await sut.ExportToCsvFileAsync(csvReportFileData, exportFolder);
+        var result = await sut.ExportToCsvFileAsync(csvReportData, exportFolder);
         
         // Assert
         Assert.True(result.IsFailed);
@@ -29,14 +29,14 @@ public class ExportReportsServiceTests
     
     [Theory, AutoMoqData]
     public async Task ExportToCsvFileAsync_ReportFilePath_Invalid(
-        [UseCustomization(typeof(ReportFileCustomization))] CsvReportFileData csvReportFileData,
+        [UseCustomization(typeof(ReportFileCustomization))] CsvReportData csvReportData,
         ExportReportsService sut)
     {
         // Arrange
         var exportFolder = string.Empty;
         
         // Act
-        var result = await sut.ExportToCsvFileAsync(csvReportFileData, exportFolder);
+        var result = await sut.ExportToCsvFileAsync(csvReportData, exportFolder);
         
         // Assert
         Assert.True(result.IsFailed);
@@ -45,15 +45,15 @@ public class ExportReportsServiceTests
     
     [Theory, AutoMoqData]
     public async Task ExportToCsvFileAsync_ReportFileHeaders_Missing(
-        [UseCustomization(typeof(ReportFileCustomization))] CsvReportFileData csvReportFileData,
+        [UseCustomization(typeof(ReportFileCustomization))] CsvReportData csvReportData,
         string exportFolder,
         ExportReportsService sut)
     {
         // Arrange
-        csvReportFileData.Headers = [];
+        csvReportData.Headers = [];
         
         // Act
-        var result = await sut.ExportToCsvFileAsync(csvReportFileData, exportFolder);
+        var result = await sut.ExportToCsvFileAsync(csvReportData, exportFolder);
         
         // Assert
         Assert.True(result.IsFailed);
@@ -62,15 +62,15 @@ public class ExportReportsServiceTests
     
     [Theory, AutoMoqData]
     public async Task ExportToCsvFileAsync_ReportFileHeaders_LengthInvalid(
-        [UseCustomization(typeof(ReportFileCustomization))] CsvReportFileData csvReportFileData,
+        [UseCustomization(typeof(ReportFileCustomization))] CsvReportData csvReportData,
         string exportFolder,
         ExportReportsService sut)
     {
         // Arrange
-        csvReportFileData.Headers = ["header1", "header2", "header3"];
+        csvReportData.Headers = ["header1", "header2", "header3"];
         
         // Act
-        var result = await sut.ExportToCsvFileAsync(csvReportFileData, exportFolder);
+        var result = await sut.ExportToCsvFileAsync(csvReportData, exportFolder);
         
         // Assert
         Assert.True(result.IsFailed);
@@ -80,14 +80,14 @@ public class ExportReportsServiceTests
     
     [Theory, AutoMoqData]
     public async Task ExportToCsvFileAsync_ReportFilePathError_DirectoryNotFoundException(
-        [UseCustomization(typeof(ReportFileCustomization))] CsvReportFileData csvReportFileData,
+        [UseCustomization(typeof(ReportFileCustomization))] CsvReportData csvReportData,
         [Frozen] Mock<ILogger> logger, ExportReportsService sut)
     {
         // Arrange
         var exportFolder = "aaaa";
         
         // Act
-        var result = await sut.ExportToCsvFileAsync(csvReportFileData, exportFolder);
+        var result = await sut.ExportToCsvFileAsync(csvReportData, exportFolder);
         
         // Assert
         Assert.True(result.IsFailed);
@@ -98,15 +98,15 @@ public class ExportReportsServiceTests
     
     [Theory, AutoMoqData]
     public async Task ExportToCsvFileAsync_ReportFilePathError_Exception(
-        [UseCustomization(typeof(ReportFileCustomization))] CsvReportFileData csvReportFileData,
+        [UseCustomization(typeof(ReportFileCustomization))] CsvReportData csvReportData,
         string exportFolder,
         ExportReportsService sut)
     {
         // Arrange
-        csvReportFileData.FileName = "/////";
+        csvReportData.FileName = "/////";
         
         // Act
-        var result = await sut.ExportToCsvFileAsync(csvReportFileData, exportFolder);
+        var result = await sut.ExportToCsvFileAsync(csvReportData, exportFolder);
         
         // Assert
         Assert.True(result.IsFailed);
@@ -115,7 +115,7 @@ public class ExportReportsServiceTests
     
     [Theory, AutoMoqData]
     public async Task ExportToCsvFileAsync_Ok(
-        [UseCustomization(typeof(ReportFileCustomization))] CsvReportFileData csvReportFileData,
+        [UseCustomization(typeof(ReportFileCustomization))] CsvReportData csvReportData,
         [Frozen] Mock<ILogger> logger, ExportReportsService sut)
     {
         // Arrange
@@ -123,15 +123,15 @@ public class ExportReportsServiceTests
         Assert.NotNull(exportFolder);
         
         // Act
-        var result = await sut.ExportToCsvFileAsync(csvReportFileData, exportFolder);
+        var result = await sut.ExportToCsvFileAsync(csvReportData, exportFolder);
         
         // Assert
         Assert.True(result.IsSuccess);
         logger.Verify(x => x.Information(
             "Report file with name {FileName} successfully created in location {FilePath}.", 
-            csvReportFileData.FileName, exportFolder), Times.Once());
+            csvReportData.FileName, exportFolder), Times.Once());
 
-        var filePath = Path.Combine(exportFolder, csvReportFileData.FileName);
+        var filePath = Path.Combine(exportFolder, csvReportData.FileName);
         Assert.True(File.Exists(filePath));
         var lines = await File.ReadAllLinesAsync(filePath);
         Assert.Equal(3, lines.Length);

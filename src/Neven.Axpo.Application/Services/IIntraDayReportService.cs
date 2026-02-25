@@ -7,5 +7,5 @@ public interface IIntraDayReportService
 {
     Task<Result<AggregatedPowerTrade>> GenerateDataAsync(DateTime date);
     
-    Task<Result<CsvReportFileData>> PrepareDataForCsvExportAsync(AggregatedPowerTrade aggregatedPowerTrades);
+    Task<Result<CsvReportData>> PrepareDataForCsvExportAsync(AggregatedPowerTrade aggregatedPowerTrades);
 }
