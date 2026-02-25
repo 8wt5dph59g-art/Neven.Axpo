@@ -1,3 +1,4 @@
+using System.Globalization;
 using Axpo;
 using FluentResults;
 using JetBrains.Annotations;
@@ -40,13 +41,15 @@ public class IntraDayReportService(IPowerService powerService, ILogger logger) :
                 g => g.Sum(p => p.Volume)
             );
 
+        var periodMatching = GeneratePeriodMatching(date);
+        
         var result = new AggregatedPowerTrade
         {
             TimeStamp = date,
             Aggregations = volumeByPeriod.Select(x => new AggregatedPowerPeriod
             {
                 AggregatedVolume = x.Value, 
-                Period = x.Key
+                Period = periodMatching[x.Key]
             }).ToArray()
         };
 
@@ -69,21 +72,28 @@ public class IntraDayReportService(IPowerService powerService, ILogger logger) :
         for (var i = 0; i < aggregationsLength; i++)
         {
             var aggregation = aggregations[i];
-            result.TabularData[i, 0] = TransformAggregatedPowerPeriod(aggregation.Period);
-            result.TabularData[i, 1] = aggregation.AggregatedVolume.ToString("N2");
+            result.TabularData[i, 0] = aggregation.Period.ToString("HH:mm");
+            result.TabularData[i, 1] = aggregation.AggregatedVolume.ToString(CultureInfo.InvariantCulture);
         }
 
         return Task.FromResult(Result.Ok(result));
     }
 
-    private static string TransformAggregatedPowerPeriod(int period)
+    private static Dictionary<int, DateTime> GeneratePeriodMatching(DateTime reportDateTime)
     {
-        var x = 23;
-        if (period > 1)
-        {
-            x = period - 2;
-        }
+        var gmtTimeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("GMT Standard Time");
+        var result = new Dictionary<int, DateTime>();
         
-        return x.ToString("00") + ":00";
+        var reportDateTimeLowerBound = new DateTime(reportDateTime.Year, reportDateTime.Month, reportDateTime.Day, 0, 0, 0, DateTimeKind.Unspecified).Date.AddHours(-1.0);
+        var reportDateTimeUpperBound = reportDateTimeLowerBound.AddDays(1.0);
+        var reportDateTimeLowerBoundUtc = TimeZoneInfo.ConvertTimeToUtc(reportDateTimeLowerBound, gmtTimeZoneInfo);
+        var reportDateTimeUpperBoundUtc = TimeZoneInfo.ConvertTimeToUtc(reportDateTimeUpperBound, gmtTimeZoneInfo);
+        var numberOfPeriods = (int) reportDateTimeUpperBoundUtc.Subtract(reportDateTimeLowerBoundUtc).TotalHours;
+        for (var i = 0; i < numberOfPeriods; i++)
+        {
+            result.Add(i+1, reportDateTimeLowerBoundUtc.AddHours(i));
+        }
+
+        return result;
     }
 }

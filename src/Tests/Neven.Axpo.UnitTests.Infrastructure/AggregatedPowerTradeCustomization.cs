@@ -11,10 +11,10 @@ public class AggregatedPowerTradeCustomization : ICustomization
         fixture.Customize<AggregatedPowerTrade>(x => x
             .With(o => o.TimeStamp, new DateTime(2026, 2, 1, 15, 0, 0))
             .With(o => o.Aggregations, [
-                new AggregatedPowerPeriod {Period = 1, AggregatedVolume = 100d}, 
-                new AggregatedPowerPeriod {Period = 2, AggregatedVolume = 200d},
-                new AggregatedPowerPeriod {Period = 5, AggregatedVolume = 200.06622d},
-                new AggregatedPowerPeriod {Period = 20, AggregatedVolume = -75.06622d}])
+                new AggregatedPowerPeriod {Period = new DateTime(2026, 2, 1, 23, 0, 0), AggregatedVolume = 100d}, 
+                new AggregatedPowerPeriod {Period = new DateTime(2026, 2, 2, 0, 0, 0), AggregatedVolume = 200d},
+                new AggregatedPowerPeriod {Period = new DateTime(2026, 2, 2, 3, 0, 0), AggregatedVolume = 200.06622d},
+                new AggregatedPowerPeriod {Period = new DateTime(2026, 2, 2, 18, 0, 0), AggregatedVolume = -75.06622d}])
             );
     }
 }

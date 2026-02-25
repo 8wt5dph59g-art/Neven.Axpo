@@ -71,7 +71,7 @@ public class ExportReportsService(ILogger logger) : IExportReportsService
 
     private static string CreateFileLine(string[] lineItems)
     {
-        return string.Join(",", lineItems);
+        return string.Join(";", lineItems);
     }
     
     private static string[] GetRow(string[,] rows, int rowNumber)

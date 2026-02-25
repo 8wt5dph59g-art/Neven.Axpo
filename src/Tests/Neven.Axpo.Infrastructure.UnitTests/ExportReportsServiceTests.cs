@@ -128,8 +128,8 @@ public class ExportReportsServiceTests
         Assert.True(File.Exists(filePath));
         var lines = await File.ReadAllLinesAsync(filePath);
         Assert.Equal(3, lines.Length);
-        Assert.Equal("header1,header2", lines[0]);
-        Assert.Equal("13:00,100.20", lines[1]);
-        Assert.Equal("14:00,80.50", lines[2]);
+        Assert.Equal("header1;header2", lines[0]);
+        Assert.Equal("13:00;100.20", lines[1]);
+        Assert.Equal("14:00;80.50", lines[2]);
     }
 }

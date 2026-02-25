@@ -61,7 +61,7 @@ public class IntraDayReportServiceTests
             .ReturnsAsync([]);
         
         // Act
-        var result = await sut.GenerateDataAsync(new DateTime());
+        var result = await sut.GenerateDataAsync(DateTime.Now);
         
         // Assert
         Assert.True(result.IsSuccess);
@@ -74,7 +74,7 @@ public class IntraDayReportServiceTests
         IntraDayReportService sut)
     {
         // Arrange
-        var date = DateTime.Now;
+        var date = new DateTime(2026,2,2,15,15,15);
         var trades = new List<PowerTrade>
         {
             PowerTrade.Create(date, 4),
@@ -96,13 +96,13 @@ public class IntraDayReportServiceTests
         // Assert
         Assert.True(result.IsSuccess);
         Assert.NotEmpty(result.Value.Aggregations);
-        Assert.Equal(1, result.Value.Aggregations[0].Period);
+        Assert.Equal(new DateTime(2026, 2, 1, 23, 0, 0), result.Value.Aggregations[0].Period);
         Assert.Equal(2d, result.Value.Aggregations[0].AggregatedVolume);
-        Assert.Equal(2, result.Value.Aggregations[1].Period);
+        Assert.Equal(new DateTime(2026, 2, 2, 0, 0, 0), result.Value.Aggregations[1].Period);
         Assert.Equal(4d, result.Value.Aggregations[1].AggregatedVolume);
-        Assert.Equal(3, result.Value.Aggregations[2].Period);
+        Assert.Equal(new DateTime(2026, 2, 2, 1, 0, 0), result.Value.Aggregations[2].Period);
         Assert.Equal(6d, result.Value.Aggregations[2].AggregatedVolume);
-        Assert.Equal(4, result.Value.Aggregations[3].Period);
+        Assert.Equal(new DateTime(2026, 2, 2, 2, 0, 0), result.Value.Aggregations[3].Period);
         Assert.Equal(8d, result.Value.Aggregations[3].AggregatedVolume);
     }
     
@@ -124,13 +124,13 @@ public class IntraDayReportServiceTests
         Assert.Contains(IntraDayReportHeaderData.LocalTime, result.Value.Headers);
         Assert.Contains(IntraDayReportHeaderData.Volume, result.Value.Headers);
         Assert.Equal("23:00", result.Value.TabularData[0,0]);
-        Assert.Equal("100.00", result.Value.TabularData[0,1]);
+        Assert.Equal("100", result.Value.TabularData[0,1]);
         Assert.Equal("00:00", result.Value.TabularData[1,0]);
-        Assert.Equal("200.00", result.Value.TabularData[1,1]);
+        Assert.Equal("200", result.Value.TabularData[1,1]);
         Assert.Equal("03:00", result.Value.TabularData[2,0]);
-        Assert.Equal("200.07", result.Value.TabularData[2,1]);
+        Assert.Equal("200.06622", result.Value.TabularData[2,1]);
         Assert.Equal("18:00", result.Value.TabularData[3,0]);
-        Assert.Equal("-75.07", result.Value.TabularData[3,1]);
+        Assert.Equal("-75.06622", result.Value.TabularData[3,1]);
     }
     
     [Theory, AutoMoqData]
