@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using FluentResults;
 using Neven.Axpo.Domain.Entities;
 
@@ -14,6 +15,6 @@ public interface IExportReportsService
     /// <param name="csvReportData">Data to export.</param>
     /// <param name="exportPath">Location where file is supposed to be saved.</param>
     /// <param name="includeHeaders">Optional parameter specifying do we want to include headers.</param>
-    /// <returns>Returns result that indicates was export successful or not.</returns>
-    Task<Result> ExportToCsvFileAsync(CsvReportData csvReportData, string exportPath, bool includeHeaders = true);
+    /// <returns>Returns result contains full path of CSV file.</returns>
+    Task<Result<string>> ExportToCsvFileAsync(CsvReportData csvReportData, string exportPath, bool includeHeaders = true);
 }

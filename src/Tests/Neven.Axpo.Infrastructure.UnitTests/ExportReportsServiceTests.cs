@@ -1,4 +1,6 @@
+using System.IO;
 using System.Reflection;
+using System.Threading.Tasks;
 using AutoFixture.Xunit2;
 using Moq;
 using Neven.Axpo.Domain.Entities;
@@ -130,10 +132,9 @@ public class ExportReportsServiceTests
         logger.Verify(x => x.Information(
             "Report file with name {FileName} successfully created in location {FilePath}.", 
             csvReportData.FileName, exportFolder), Times.Once());
-
-        var filePath = Path.Combine(exportFolder, csvReportData.FileName);
-        Assert.True(File.Exists(filePath));
-        var lines = await File.ReadAllLinesAsync(filePath);
+        
+        Assert.True(File.Exists(result.Value));
+        var lines = await File.ReadAllLinesAsync(result.Value);
         Assert.Equal(3, lines.Length);
         Assert.Equal("header1;header2", lines[0]);
         Assert.Equal("13:00;100.20", lines[1]);

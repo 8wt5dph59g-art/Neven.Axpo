@@ -1,3 +1,8 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using FluentResults;
 using JetBrains.Annotations;
 using Neven.Axpo.Application.Services;
@@ -12,7 +17,7 @@ public class ExportReportsService(ILogger logger) : IExportReportsService
     private readonly ILogger _logger = logger?? throw new ArgumentNullException(nameof(logger));
     
     /// <inheritdoc/>
-    public async Task<Result> ExportToCsvFileAsync(CsvReportData csvReportData, string exportPath, bool includeHeaders = true)
+    public async Task<Result<string>> ExportToCsvFileAsync(CsvReportData csvReportData, string exportPath, bool includeHeaders = true)
     {
         _logger.Information("Calling {Name}", nameof(ExportToCsvFileAsync));
         if (string.IsNullOrWhiteSpace(csvReportData.FileName))
@@ -49,9 +54,15 @@ public class ExportReportsService(ILogger logger) : IExportReportsService
             lines.Add(CreateFileLine(GetRow(csvReportData.TabularData, i)));
         }
 
+        if (!Directory.Exists(exportPath))
+        {
+            Directory.CreateDirectory(exportPath);
+        }
+
+        string fullPath;
         try
         {
-            var fullPath = Path.Combine(exportPath, csvReportData.FileName);
+            fullPath = Path.Combine(exportPath, csvReportData.FileName);
             await File.AppendAllLinesAsync(fullPath, lines);
         }
         catch (DirectoryNotFoundException e)
@@ -68,7 +79,7 @@ public class ExportReportsService(ILogger logger) : IExportReportsService
         }
 
         _logger.Information("Report file with name {FileName} successfully created in location {FilePath}.", csvReportData.FileName, exportPath);
-        return Result.Ok();
+        return fullPath;
     }
 
     private static string CreateFileLine(string[] lineItems)

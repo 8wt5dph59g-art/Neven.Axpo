@@ -1,3 +1,5 @@
+using System;
+using System.Threading.Tasks;
 using FluentResults;
 using JetBrains.Annotations;
 using Neven.Axpo.Application.Services;
@@ -13,24 +15,30 @@ namespace Neven.Axpo.Application.UseCases.IntraDayReport;
 /// <param name="exportReportsService">Instance of Export Reports service.</param>
 /// <param name="logger">Logger</param>
 [UsedImplicitly]
-public class IntraDayReportHandler(IIntraDayReportService intraDayReportService, IExportReportsService exportReportsService, ILogger logger)
+public class IntraDayReportHandler(
+    IIntraDayReportService intraDayReportService,
+    IExportReportsService exportReportsService,
+    IDateTimeProvider dateTimeProvider,
+    ILogger logger)
 {
     private readonly IIntraDayReportService _intraDayReportService = intraDayReportService?? throw new ArgumentNullException(nameof(intraDayReportService));
     private readonly IExportReportsService _exportReportsService = exportReportsService?? throw new ArgumentNullException(nameof(exportReportsService));
+    private readonly IDateTimeProvider _dateTimeProvider = dateTimeProvider?? throw new ArgumentNullException(nameof(dateTimeProvider));
     private readonly ILogger _logger = logger?? throw new ArgumentNullException(nameof(logger));
 
     /// <summary>
     /// This method will generate Intra-Day power trades report and export it to CSV file.
     /// </summary>
-    /// <param name="date">Report day.</param>
     /// <param name="exportPath">Export destination.</param>
     /// <returns>Returns result that indicates was operation successful or not.</returns>
-    public async Task<Result> GenerateCsvReportAsync(DateTime date, string exportPath)
+    public async Task<Result> GenerateCsvReportAsync(string exportPath)
     {
-        _logger.Information("Received request to generate IntraDay report with date {date}", date);
+        _logger.Information("Received request to generate IntraDay report with date");
         Result<AggregatedPowerTrade> reportData;
         try
         {
+            var date = _dateTimeProvider.GetCurrentLocalTime();
+            _logger.Information("Getting report for local date time {LocalDateTime}", date);
             reportData = await _intraDayReportService.GenerateDataAsync(date);
         }
         catch (Exception e)
@@ -60,7 +68,7 @@ public class IntraDayReportHandler(IIntraDayReportService intraDayReportService,
             return Result.Fail(dataForExport.Errors);
         }
 
-        Result exportResult;
+        Result<string> exportResult;
         try
         {
             exportResult = await _exportReportsService.ExportToCsvFileAsync(dataForExport.Value, exportPath);

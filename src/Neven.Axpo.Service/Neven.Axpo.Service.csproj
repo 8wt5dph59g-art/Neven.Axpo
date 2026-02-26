@@ -1,0 +1,52 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <Nullable>disable</Nullable>
+        <ImplicitUsings>disable</ImplicitUsings>
+        <UserSecretsId>dotnet-Neven.Axpo.Service-6e8910ee-126e-4a72-84d4-3532d3fe8cc3</UserSecretsId>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.3"/>
+        <PackageReference Include="Serilog" Version="4.3.1" />
+        <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
+        <PackageReference Include="Serilog.Extensions.Hosting" Version="10.0.0" />
+        <PackageReference Include="Serilog.Settings.AppSettings" Version="3.0.0" />
+        <PackageReference Include="Serilog.Settings.Configuration" Version="10.0.0" />
+        <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
+        <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Neven.Axpo.Application\Neven.Axpo.Application.csproj" />
+      <ProjectReference Include="..\Neven.Axpo.Domain\Neven.Axpo.Domain.csproj" />
+      <ProjectReference Include="..\Neven.Axpo.Infrastructure\Neven.Axpo.Infrastructure.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Reference Include="PowerService">
+        <HintPath>..\External\netstandard2.0\PowerService.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Remove="Logs\**" />
+      <Compile Remove="Neven\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Remove="Logs\**" />
+      <EmbeddedResource Remove="Neven\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Remove="Logs\**" />
+      <Content Remove="Neven\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="Logs\**" />
+      <None Remove="Neven\**" />
+    </ItemGroup>
+</Project>

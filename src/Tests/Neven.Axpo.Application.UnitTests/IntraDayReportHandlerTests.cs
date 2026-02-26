@@ -1,3 +1,5 @@
+using System;
+using System.Threading.Tasks;
 using AutoFixture.Xunit2;
 using FluentResults;
 using Moq;
@@ -14,17 +16,19 @@ public class IntraDayReportHandlerTests
     [Theory, AutoMoqData]
     public async Task GenerateCsvReportAsync_GenerateDataAsync_ThrowsException(
         Exception exception,
-        DateTime reportDate,
+        [Frozen] Mock<IDateTimeProvider> dateTimeProvider,
         [Frozen] Mock<ILogger> logger,
         [Frozen] Mock<IIntraDayReportService> intraDayReportService,
         IntraDayReportHandler sut)
     {
         // Arrange
+        dateTimeProvider.Setup(x => x.GetCurrentLocalTime()).Returns(DateTime.Now);
+        
         intraDayReportService.Setup(x => 
             x.GenerateDataAsync(It.IsAny<DateTime>())).ThrowsAsync(exception);
         
         // Act
-        var result = await sut.GenerateCsvReportAsync(reportDate, string.Empty);
+        var result = await sut.GenerateCsvReportAsync(string.Empty);
 
         // Assert
         Assert.True(result.IsFailed);
@@ -35,17 +39,20 @@ public class IntraDayReportHandlerTests
     
     [Theory, AutoMoqData]
     public async Task GenerateCsvReportAsync_GenerateDataAsync_ReturnsFailure(
-        DateTime reportDate,
+        [Frozen] Mock<IDateTimeProvider> dateTimeProvider,
         [Frozen] Mock<IIntraDayReportService> intraDayReportService,
         IntraDayReportHandler sut)
     {
         // Arrange
         var trades = Result.Fail("Failed to generate report data.");
+        
+        dateTimeProvider.Setup(x => x.GetCurrentLocalTime()).Returns(DateTime.Now);
+        
         intraDayReportService.Setup(x => 
             x.GenerateDataAsync(It.IsAny<DateTime>())).ReturnsAsync(trades);
         
         // Act
-        var result = await sut.GenerateCsvReportAsync(reportDate, string.Empty);
+        var result = await sut.GenerateCsvReportAsync(string.Empty);
 
         // Assert
         Assert.True(result.IsFailed);
@@ -55,12 +62,14 @@ public class IntraDayReportHandlerTests
     [Theory, AutoMoqData]
     public async Task GenerateCsvReportAsync_PrepareDataForCsvExportAsync_ThrowsException(
         Exception exception,
-        DateTime reportDate,
+        [Frozen] Mock<IDateTimeProvider> dateTimeProvider,
         [Frozen] Mock<ILogger> logger,
         [Frozen] Mock<IIntraDayReportService> intraDayReportService,
         IntraDayReportHandler sut)
     {
         // Arrange
+        dateTimeProvider.Setup(x => x.GetCurrentLocalTime()).Returns(DateTime.Now);
+        
         intraDayReportService.Setup(x => 
             x.GenerateDataAsync(It.IsAny<DateTime>())).ReturnsAsync(new Result<AggregatedPowerTrade>());
         
@@ -68,7 +77,7 @@ public class IntraDayReportHandlerTests
             x.PrepareDataForCsvExportAsync(It.IsAny<AggregatedPowerTrade>())).ThrowsAsync(exception);
         
         // Act
-        var result = await sut.GenerateCsvReportAsync(reportDate, string.Empty);
+        var result = await sut.GenerateCsvReportAsync(string.Empty);
 
         // Assert
         Assert.True(result.IsFailed);
@@ -79,12 +88,14 @@ public class IntraDayReportHandlerTests
     
     [Theory, AutoMoqData]
     public async Task GenerateCsvReportAsync_PrepareDataForCsvExportAsync_ReturnsFailure(
-        DateTime reportDate,
+        [Frozen] Mock<IDateTimeProvider> dateTimeProvider,
         [Frozen] Mock<IIntraDayReportService> intraDayReportService,
         IntraDayReportHandler sut)
     {
         // Arrange
         var csvReportFileData = Result.Fail("Some error.");
+        
+        dateTimeProvider.Setup(x => x.GetCurrentLocalTime()).Returns(DateTime.Now);
         
         intraDayReportService.Setup(x => 
             x.GenerateDataAsync(It.IsAny<DateTime>())).ReturnsAsync(new Result<AggregatedPowerTrade>());
@@ -93,7 +104,7 @@ public class IntraDayReportHandlerTests
             x.PrepareDataForCsvExportAsync(It.IsAny<AggregatedPowerTrade>())).ReturnsAsync(csvReportFileData);
         
         // Act
-        var result = await sut.GenerateCsvReportAsync(reportDate, string.Empty);
+        var result = await sut.GenerateCsvReportAsync(string.Empty);
 
         // Assert
         Assert.True(result.IsFailed);
@@ -103,13 +114,15 @@ public class IntraDayReportHandlerTests
     [Theory, AutoMoqData]
     public async Task GenerateCsvReportAsync_ExportToCsvFileAsync_ThrowsException(
         Exception exception,
-        DateTime reportDate,
+        [Frozen] Mock<IDateTimeProvider> dateTimeProvider,
         [Frozen] Mock<ILogger> logger,
         [Frozen] Mock<IIntraDayReportService> intraDayReportService,
         [Frozen] Mock<IExportReportsService> exportReportsService,
         IntraDayReportHandler sut)
     {
         // Arrange
+        dateTimeProvider.Setup(x => x.GetCurrentLocalTime()).Returns(DateTime.Now);
+        
         intraDayReportService.Setup(x => 
             x.GenerateDataAsync(It.IsAny<DateTime>()))
             .ReturnsAsync(new Result<AggregatedPowerTrade>());
@@ -123,7 +136,7 @@ public class IntraDayReportHandlerTests
             .ThrowsAsync(exception);
         
         // Act
-        var result = await sut.GenerateCsvReportAsync(reportDate, string.Empty);
+        var result = await sut.GenerateCsvReportAsync(string.Empty);
 
         // Assert
         Assert.True(result.IsFailed);
@@ -134,13 +147,15 @@ public class IntraDayReportHandlerTests
     
     [Theory, AutoMoqData]
     public async Task GenerateCsvReportAsync_ExportToCsvFileAsync_ReturnsFailure(
-        DateTime reportDate,
+        [Frozen] Mock<IDateTimeProvider> dateTimeProvider,
         [Frozen] Mock<IIntraDayReportService> intraDayReportService,
         [Frozen] Mock<IExportReportsService> exportReportsService,
         IntraDayReportHandler sut)
     {
         // Arrange
         var exportFailure = Result.Fail("Some error.");
+        
+        dateTimeProvider.Setup(x => x.GetCurrentLocalTime()).Returns(DateTime.Now);
         
         intraDayReportService.Setup(x => 
                 x.GenerateDataAsync(It.IsAny<DateTime>()))
@@ -155,7 +170,7 @@ public class IntraDayReportHandlerTests
             .ReturnsAsync(exportFailure);
         
         // Act
-        var result = await sut.GenerateCsvReportAsync(reportDate, string.Empty);
+        var result = await sut.GenerateCsvReportAsync(string.Empty);
 
         // Assert
         Assert.True(result.IsFailed);
@@ -164,13 +179,13 @@ public class IntraDayReportHandlerTests
     
     [Theory, AutoMoqData]
     public async Task GenerateCsvReportAsync_ExportToCsvFileAsync_Ok(
-        DateTime reportDate,
+        [Frozen] Mock<IDateTimeProvider> dateTimeProvider,
         [Frozen] Mock<IIntraDayReportService> intraDayReportService,
         [Frozen] Mock<IExportReportsService> exportReportsService,
         IntraDayReportHandler sut)
     {
         // Arrange
-        var exportFailure = Result.Fail("Some error.");
+        dateTimeProvider.Setup(x => x.GetCurrentLocalTime()).Returns(DateTime.Now);
         
         intraDayReportService.Setup(x => 
                 x.GenerateDataAsync(It.IsAny<DateTime>()))
@@ -182,10 +197,10 @@ public class IntraDayReportHandlerTests
 
         exportReportsService.Setup(x => 
                 x.ExportToCsvFileAsync(It.IsAny<CsvReportData>(), It.IsAny<string>()))
-            .ReturnsAsync(Result.Ok);
+            .ReturnsAsync(new Result<string>());
         
         // Act
-        var result = await sut.GenerateCsvReportAsync(reportDate, string.Empty);
+        var result = await sut.GenerateCsvReportAsync(string.Empty);
 
         // Assert
         Assert.True(result.IsSuccess);

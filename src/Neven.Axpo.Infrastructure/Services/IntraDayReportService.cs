@@ -1,4 +1,8 @@
+using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
+using System.Threading.Tasks;
 using Axpo;
 using FluentResults;
 using JetBrains.Annotations;
@@ -102,7 +106,7 @@ public class IntraDayReportService(IPowerService powerService, ILogger logger) :
         {
             result = new CsvReportData
             {
-                FileName = $"PowerPosition_{aggregatedPowerTrade.TimeStamp:YYYYMMDD}_{aggregatedPowerTrade.TimeStamp:HHMM}.csv",
+                FileName = $"PowerPosition_{aggregatedPowerTrade.TimeStamp:yyyyMMdd}_{aggregatedPowerTrade.TimeStamp:HHmm}.csv",
                 Headers = [IntraDayCsvReportConfiguration.HeaderLocalTime, IntraDayCsvReportConfiguration.HeaderVolume],
                 TabularData = new string[aggregationsLength, 2]
             };
