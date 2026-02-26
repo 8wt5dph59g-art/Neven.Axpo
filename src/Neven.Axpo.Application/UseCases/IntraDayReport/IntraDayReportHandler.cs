@@ -1,7 +1,6 @@
 using System;
 using System.Threading.Tasks;
 using FluentResults;
-using JetBrains.Annotations;
 using Neven.Axpo.Application.Services;
 using Neven.Axpo.Domain.Entities;
 using Serilog;
@@ -14,7 +13,6 @@ namespace Neven.Axpo.Application.UseCases.IntraDayReport;
 /// <param name="intraDayReportService">Instance of Intra-Day Report service.</param>
 /// <param name="exportReportsService">Instance of Export Reports service.</param>
 /// <param name="logger">Logger</param>
-[UsedImplicitly]
 public class IntraDayReportHandler(
     IIntraDayReportService intraDayReportService,
     IExportReportsService exportReportsService,

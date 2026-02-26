@@ -1,12 +1,9 @@
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
-using AutoFixture.Xunit2;
-using Moq;
 using Neven.Axpo.Domain.Entities;
 using Neven.Axpo.Infrastructure.Services;
 using Neven.Axpo.UnitTests.Infrastructure;
-using Serilog;
 
 namespace Neven.Axpo.Infrastructure.UnitTests;
 
