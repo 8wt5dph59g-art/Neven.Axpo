@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using FluentResults;
 using Neven.Axpo.Application.Services;
 using Neven.Axpo.Domain.Entities;
-using Newtonsoft.Json;
 using Serilog;
 
 namespace Neven.Axpo.Infrastructure.Services;
@@ -19,7 +18,7 @@ public class ExportReportsService(ILogger logger) : IExportReportsService
     public async Task<Result<string>> ExportToCsvFileAsync(CsvReportData csvReportData, string exportPath, bool includeHeaders = true)
     {
         _logger.Debug("Calling {Name}", nameof(ExportToCsvFileAsync));
-        _logger.Debug("Parameter csvReportData has value {Value}", JsonConvert.SerializeObject(csvReportData));
+        _logger.Debug("Parameter csvReportData has value {@Value}", csvReportData);
         _logger.Debug("Parameter exportPath has value {Value}", exportPath);
         _logger.Debug("Parameter includeHeaders has value {Value}", includeHeaders);
         

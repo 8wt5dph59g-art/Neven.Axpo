@@ -7,7 +7,6 @@ using Axpo;
 using FluentResults;
 using Neven.Axpo.Application.Services;
 using Neven.Axpo.Domain.Entities;
-using Newtonsoft.Json;
 using Serilog;
 
 namespace Neven.Axpo.Infrastructure.Services;
@@ -23,13 +22,12 @@ public class IntraDayReportService(IPowerService powerService, ILogger logger) :
         _logger.Debug("Calling {MethodName}", nameof(GenerateDataAsync));
         _logger.Debug("Parameter date has value {Value}", date);
         
-        IEnumerable<PowerTrade> powerTrades;
+        List<PowerTrade> powerTrades;
         try
         {
-            powerTrades = await _powerService.GetTradesAsync(date);
+            powerTrades = (await _powerService.GetTradesAsync(date)).ToList();
             
-            _logger.Debug("{ServiceName} returned following trades {Value}", nameof(PowerService),
-                JsonConvert.SerializeObject(powerTrades));
+            _logger.Debug("{ServiceName} returned following trades {@Value}", nameof(PowerService), powerTrades);
         }
         catch (PowerServiceException e)
         {
@@ -54,8 +52,7 @@ public class IntraDayReportService(IPowerService powerService, ILogger logger) :
                     g => g.Sum(p => p.Volume)
                 );
             
-            _logger.Debug("Volumes grouped by periods {Value}",
-                JsonConvert.SerializeObject(volumeByPeriod));
+            _logger.Debug("Volumes grouped by periods {@Value}", volumeByPeriod);
         }
         catch (Exception e)
         {
@@ -68,8 +65,7 @@ public class IntraDayReportService(IPowerService powerService, ILogger logger) :
         {
             reportStructure = GenerateReportStructure(date);
             
-            _logger.Debug("Initial report structure that contains all periods and default volumes {Value}",
-                JsonConvert.SerializeObject(reportStructure));
+            _logger.Debug("Initial report structure that contains all periods and default volumes {@Value}", reportStructure);
         }
         catch (Exception e)
         {
@@ -90,8 +86,7 @@ public class IntraDayReportService(IPowerService powerService, ILogger logger) :
                 }).ToArray()
             };
             
-            _logger.Debug("Aggregated trades merged with initial report structure {Value}",
-                JsonConvert.SerializeObject(result));
+            _logger.Debug("Aggregated trades merged with initial report structure {@Value}", result);
         }
         catch (Exception e)
         {
