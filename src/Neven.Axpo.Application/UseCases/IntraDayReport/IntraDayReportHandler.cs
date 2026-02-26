@@ -33,12 +33,11 @@ public class IntraDayReportHandler(
     /// <returns>Returns result that indicates was operation successful or not.</returns>
     public async Task<Result> GenerateCsvReportAsync(string exportPath)
     {
-        _logger.Information("Received request to generate IntraDay report with date");
         Result<AggregatedPowerTrade> reportData;
         try
         {
             var date = _dateTimeProvider.GetCurrentLocalTime();
-            _logger.Information("Getting report for local date time {LocalDateTime}", date);
+            _logger.Information("Getting report for local date time {LocalDateTime}.", date);
             reportData = await _intraDayReportService.GenerateDataAsync(date);
         }
         catch (Exception e)
@@ -78,6 +77,8 @@ public class IntraDayReportHandler(
             _logger.Error(e, "Unhandled exception occured while trying to save report to CSV file.");
             return Result.Fail("Failed to save report to CSV file.");
         }
+        
+        _logger.Information("Report file successfully created {FullFilePath}.", exportResult.Value);
         
         return exportResult.IsFailed ? Result.Fail(exportResult.Errors) : Result.Ok();
     }

@@ -21,8 +21,8 @@ public class ReportWorker(IServiceProvider services, ILogger logger, PowerPositi
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         _logger.Information("Starting {WorkerName} at {CurrentTime}.", nameof(ReportWorker), DateTime.Now);
-        _logger.Information("Report export path is {Path}", _exportSettings.ReportPath);
-        _logger.Information("Report export interval delay in minutes is {Interval}", _exportSettings.IntervalInMinutes);
+        _logger.Information("Report export path is {Path}.", _exportSettings.ReportPath);
+        _logger.Information("Report export interval delay in minutes is {Interval}.", _exportSettings.IntervalInMinutes);
         await DoWork();
         using var timer = new PeriodicTimer(TimeSpan.FromMinutes(_exportSettings.IntervalInMinutes));
         while (await timer.WaitForNextTickAsync(cancellationToken))
@@ -34,7 +34,7 @@ public class ReportWorker(IServiceProvider services, ILogger logger, PowerPositi
     private async Task DoWork()
     {
         _logger.Information("-------------------------------------------------------------------------------------------");
-        _logger.Information("Task {TaskName} executed at: {CurrentTime}", nameof(ReportWorker), DateTime.Now);
+        _logger.Information("Task for {TaskName} called at: {CurrentTime}.", nameof(ReportWorker), DateTime.Now);
         
         using var scope = _services.CreateScope();
         
@@ -59,7 +59,7 @@ public class ReportWorker(IServiceProvider services, ILogger logger, PowerPositi
 
     public Task StopAsync(CancellationToken cancellationToken)
     {
-        _logger.Information("Starting {WorkerName}.", nameof(ReportWorker));
+        _logger.Information("Stopping {WorkerName}.", nameof(ReportWorker));
         
         return Task.CompletedTask;
     }

@@ -10,7 +10,6 @@ using Neven.Axpo.Service;
 using Serilog;
 
 Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console()
     .WriteTo.File("Logs/app-failure-log-.txt", rollingInterval: RollingInterval.Day)
     .CreateLogger();
 try
@@ -30,8 +29,9 @@ try
     builder.Services.AddSingleton(powerPositionsExportSettings);
     var host = builder.Build();
     host.Run();
+    
 }
 catch (Exception e)
 {
-    Log.Error(e, "Error Starting Service");
+    Log.Error(e, "Error running program");
 }

@@ -4,14 +4,13 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using FluentResults;
-using JetBrains.Annotations;
 using Neven.Axpo.Application.Services;
 using Neven.Axpo.Domain.Entities;
+using Newtonsoft.Json;
 using Serilog;
 
 namespace Neven.Axpo.Infrastructure.Services;
 
-[UsedImplicitly]
 public class ExportReportsService(ILogger logger) : IExportReportsService
 {
     private readonly ILogger _logger = logger?? throw new ArgumentNullException(nameof(logger));
@@ -19,7 +18,11 @@ public class ExportReportsService(ILogger logger) : IExportReportsService
     /// <inheritdoc/>
     public async Task<Result<string>> ExportToCsvFileAsync(CsvReportData csvReportData, string exportPath, bool includeHeaders = true)
     {
-        _logger.Information("Calling {Name}", nameof(ExportToCsvFileAsync));
+        _logger.Debug("Calling {Name}", nameof(ExportToCsvFileAsync));
+        _logger.Debug("Parameter csvReportData has value {Value}", JsonConvert.SerializeObject(csvReportData));
+        _logger.Debug("Parameter exportPath has value {Value}", exportPath);
+        _logger.Debug("Parameter includeHeaders has value {Value}", includeHeaders);
+        
         if (string.IsNullOrWhiteSpace(csvReportData.FileName))
         {
             return Result.Fail("Report file name must be defined.");
@@ -77,8 +80,7 @@ public class ExportReportsService(ILogger logger) : IExportReportsService
             _logger.Error(e, "An unexpected error occurred: {message}", e.Message);
             return Result.Fail(message);
         }
-
-        _logger.Information("Report file with name {FileName} successfully created in location {FilePath}.", csvReportData.FileName, exportPath);
+        
         return fullPath;
     }
 

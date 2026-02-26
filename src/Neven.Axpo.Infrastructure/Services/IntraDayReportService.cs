@@ -8,11 +8,11 @@ using FluentResults;
 using JetBrains.Annotations;
 using Neven.Axpo.Application.Services;
 using Neven.Axpo.Domain.Entities;
+using Newtonsoft.Json;
 using Serilog;
 
 namespace Neven.Axpo.Infrastructure.Services;
 
-[UsedImplicitly]
 public class IntraDayReportService(IPowerService powerService, ILogger logger) : IIntraDayReportService
 {
     private readonly IPowerService _powerService = powerService?? throw new ArgumentNullException(nameof(powerService));
@@ -21,16 +21,21 @@ public class IntraDayReportService(IPowerService powerService, ILogger logger) :
     /// <inheritdoc/>
     public async Task<Result<AggregatedPowerTrade>> GenerateDataAsync(DateTime date)
     {
-        _logger.Information("Calling {MethodName}", nameof(GenerateDataAsync));
+        _logger.Debug("Calling {MethodName}", nameof(GenerateDataAsync));
+        _logger.Debug("Parameter date has value {Value}", date);
+        
         IEnumerable<PowerTrade> powerTrades;
         try
         {
-            _logger.Information("Calling {ServiceName} to get trades for date: {date}.", nameof(PowerService), date);
             powerTrades = await _powerService.GetTradesAsync(date);
+            
+            _logger.Debug("{ServiceName} returned following trades {Value}", nameof(PowerService),
+                JsonConvert.SerializeObject(powerTrades));
         }
         catch (PowerServiceException e)
         {
-            _logger.Error(e, "{ExceptionType} occured while trying to get trade data." , nameof(PowerServiceException));
+            _logger.Error(e, "{ExceptionType} occured while trying to get trade data." , 
+                nameof(PowerServiceException));
             return Result.Fail("Unable to get trade data.");
         }
         catch (Exception e)
@@ -49,6 +54,9 @@ public class IntraDayReportService(IPowerService powerService, ILogger logger) :
                     g => g.Key,
                     g => g.Sum(p => p.Volume)
                 );
+            
+            _logger.Debug("Volumes grouped by periods {Value}",
+                JsonConvert.SerializeObject(volumeByPeriod));
         }
         catch (Exception e)
         {
@@ -60,6 +68,9 @@ public class IntraDayReportService(IPowerService powerService, ILogger logger) :
         try
         {
             reportStructure = GenerateReportStructure(date);
+            
+            _logger.Debug("Initial report structure that contains all periods and default volumes {Value}",
+                JsonConvert.SerializeObject(reportStructure));
         }
         catch (Exception e)
         {
@@ -79,6 +90,9 @@ public class IntraDayReportService(IPowerService powerService, ILogger logger) :
                     Period = reportStructure[x.Key].Item1
                 }).ToArray()
             };
+            
+            _logger.Debug("Aggregated trades merged with initial report structure {Value}",
+                JsonConvert.SerializeObject(result));
         }
         catch (Exception e)
         {
@@ -92,7 +106,8 @@ public class IntraDayReportService(IPowerService powerService, ILogger logger) :
     /// <inheritdoc/>
     public Task<Result<CsvReportData>> PrepareDataForCsvExportAsync(AggregatedPowerTrade aggregatedPowerTrade)
     {
-        _logger.Information("Calling {MethodName}", nameof(PrepareDataForCsvExportAsync));
+        _logger.Debug("Calling {MethodName}", nameof(PrepareDataForCsvExportAsync));
+        
         var aggregations = aggregatedPowerTrade.Aggregations;
         var aggregationsLength = aggregations.Length;
 
