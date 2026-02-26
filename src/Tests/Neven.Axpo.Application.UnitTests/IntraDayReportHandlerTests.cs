@@ -147,6 +147,7 @@ public class IntraDayReportHandlerTests
     
     [Theory, AutoMoqData]
     public async Task GenerateCsvReportAsync_ExportToCsvFileAsync_ReturnsFailure(
+        Exception exception,
         [Frozen] Mock<IDateTimeProvider> dateTimeProvider,
         [Frozen] Mock<IIntraDayReportService> intraDayReportService,
         [Frozen] Mock<IExportReportsService> exportReportsService,
@@ -167,14 +168,14 @@ public class IntraDayReportHandlerTests
 
         exportReportsService.Setup(x => 
                 x.ExportToCsvFileAsync(It.IsAny<CsvReportData>(), It.IsAny<string>()))
-            .ReturnsAsync(exportFailure);
+            .ThrowsAsync(exception);
         
         // Act
         var result = await sut.GenerateCsvReportAsync(string.Empty);
 
         // Assert
         Assert.True(result.IsFailed);
-        Assert.Equal("Some error.", result.Errors[0].Message);
+        Assert.Equal("Failed to save report to CSV file.", result.Errors[0].Message);
     }
     
     [Theory, AutoMoqData]

@@ -7,6 +7,9 @@ public class DateTimeProvider : IDateTimeProvider
 {
     public DateTime GetCurrentLocalTime()
     {
-        return DateTime.Now;
+        var gmtTimeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("GMT Standard Time");
+        var currentLocalDateTimeUtc = DateTime.UtcNow;
+        var gmtCurrentLocalDateTime = TimeZoneInfo.ConvertTimeFromUtc(currentLocalDateTimeUtc, gmtTimeZoneInfo);
+        return gmtCurrentLocalDateTime;
     }
 }

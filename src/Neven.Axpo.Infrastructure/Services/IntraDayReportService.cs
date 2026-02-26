@@ -167,13 +167,10 @@ public class IntraDayReportService(IPowerService powerService, ILogger logger) :
 
     private static Tuple<DateTime, DateTime> DetermineReportDateTimeBounds(DateTime reportDateTime)
     {
-        var gmtTimeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("GMT Standard Time");
         var reportDateTimeLowerBound = new DateTime(reportDateTime.Year, reportDateTime.Month, 
             reportDateTime.Day, 0, 0, 0, DateTimeKind.Unspecified).Date.AddHours(-1.0);
         var reportDateTimeUpperBound = reportDateTimeLowerBound.AddDays(1.0);
-        var reportDateTimeLowerBoundUtc = TimeZoneInfo.ConvertTimeToUtc(reportDateTimeLowerBound, gmtTimeZoneInfo);
-        var reportDateTimeUpperBoundUtc = TimeZoneInfo.ConvertTimeToUtc(reportDateTimeUpperBound, gmtTimeZoneInfo);
 
-        return new Tuple<DateTime, DateTime>(reportDateTimeLowerBoundUtc, reportDateTimeUpperBoundUtc);
+        return new Tuple<DateTime, DateTime>(reportDateTimeLowerBound, reportDateTimeUpperBound);
     }
 }

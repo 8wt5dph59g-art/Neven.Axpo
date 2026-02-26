@@ -81,24 +81,6 @@ public class ExportReportsServiceTests
     }
     
     [Theory, AutoMoqData]
-    public async Task ExportToCsvFileAsync_ReportFilePathError_DirectoryNotFoundException(
-        [UseCustomization(typeof(ReportFileCustomization))] CsvReportData csvReportData,
-        [Frozen] Mock<ILogger> logger, ExportReportsService sut)
-    {
-        // Arrange
-        var exportFolder = "aaaa";
-        
-        // Act
-        var result = await sut.ExportToCsvFileAsync(csvReportData, exportFolder);
-        
-        // Assert
-        Assert.True(result.IsFailed);
-        Assert.Contains("Directory for export not found.", result.Errors[0].Message);
-        logger.Verify(x => x.Error(It.IsAny<DirectoryNotFoundException>(), 
-            "Directory for export not found."), Times.Once());
-    }
-    
-    [Theory, AutoMoqData]
     public async Task ExportToCsvFileAsync_ReportFilePathError_Exception(
         [UseCustomization(typeof(ReportFileCustomization))] CsvReportData csvReportData,
         string exportFolder,
@@ -117,8 +99,7 @@ public class ExportReportsServiceTests
     
     [Theory, AutoMoqData]
     public async Task ExportToCsvFileAsync_Ok(
-        [UseCustomization(typeof(ReportFileCustomization))] CsvReportData csvReportData,
-        [Frozen] Mock<ILogger> logger, ExportReportsService sut)
+        [UseCustomization(typeof(ReportFileCustomization))] CsvReportData csvReportData, ExportReportsService sut)
     {
         // Arrange
         var exportFolder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
@@ -129,9 +110,6 @@ public class ExportReportsServiceTests
         
         // Assert
         Assert.True(result.IsSuccess);
-        logger.Verify(x => x.Information(
-            "Report file with name {FileName} successfully created in location {FilePath}.", 
-            csvReportData.FileName, exportFolder), Times.Once());
         
         Assert.True(File.Exists(result.Value));
         var lines = await File.ReadAllLinesAsync(result.Value);

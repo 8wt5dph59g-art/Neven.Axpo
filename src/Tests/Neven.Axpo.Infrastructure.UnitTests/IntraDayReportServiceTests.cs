@@ -136,7 +136,7 @@ public class IntraDayReportServiceTests
         
         // Assert
         Assert.True(result.IsSuccess);
-        Assert.Equal($"PowerPosition_{aggregatedPowerTrade.TimeStamp:YYYYMMDD}_{aggregatedPowerTrade.TimeStamp:HHMM}.csv", result.Value.FileName);
+        Assert.Equal($"PowerPosition_{aggregatedPowerTrade.TimeStamp:yyyyMMdd}_{aggregatedPowerTrade.TimeStamp:HHmm}.csv", result.Value.FileName);
         Assert.Contains(IntraDayCsvReportConfiguration.HeaderLocalTime, result.Value.Headers);
         Assert.Contains(IntraDayCsvReportConfiguration.HeaderVolume, result.Value.Headers);
         Assert.Equal("23:00", result.Value.TabularData[0,0]);
